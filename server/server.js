@@ -21,6 +21,15 @@ const PORT = 8088;
 
 const server = require('http').Server(app);
 
+app.use("/", express.static(path.resolve("build")));
+
+app.use(function(req, res, next) {
+  if(req.url.startsWith("/r")) {
+    return next();
+  }
+  return res.sendFile(path.resolve('build/index.html'));
+})
+
 server.listen(PORT, function() {
   console.log("node服务启动成功,端口为:", PORT);
 })
