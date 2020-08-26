@@ -29,11 +29,11 @@ const PORT = 8088;
 
 app.all('*',function(req,res,next){
   res.header('Access-Control-Allow-Origin', '*');//的允许所有域名的端口请求（跨域解决）
-  res.header('Access-Control-Allow-Headers', '*');
-  res.header('Access-Control-Allow-Methods', '*');
+  // res.header('Access-Control-Allow-Headers', '*');
+  // res.header('Access-Control-Allow-Methods', '*');
   // res.header('Content-Type', 'application/json;charset=utf-8');
   next();
-});
+}); 
 
 // app.use("/", express.static(path.resolve("build")));
 
@@ -50,5 +50,12 @@ app.use(function(req, res, next) {
 
 
 server.listen(PORT, function() {
-  console.log("node服务启动成功,端口为:", PORT);
+  const date = new Date();
+  const y = date.getFullYear().toString();
+  const m = date.getMonth();
+  const d = date.getDate();
+  const t = date.getHours();
+  const mi = date.getMinutes();
+  const s = date.getSeconds();
+  console.log("node服务启动成功,端口为:", PORT, "时间为:", y + "年" + m + "月" + d + "日" + t + "时" + mi + "分" + s + "秒");
 })
