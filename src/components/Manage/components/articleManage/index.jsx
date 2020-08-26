@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import CodeMirror from "react-codemirror";
 import "./index.less";
 import AceEditor from "react-ace";
 import "ace-builds/webpack-resolver";
