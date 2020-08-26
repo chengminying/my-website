@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 //连接mongodb
-const DB_URL = "mongodb://119.45.23.113:27017/website";
+const DB_URL = "mongodb://chengmy:cheng76735206@119.45.23.113:27017/website";
 mongoose.connect(DB_URL);
 mongoose.connection.on('connected', function() {
     console.log("mongoDB连接成功");
@@ -14,7 +14,7 @@ const models = {
     'name': {type: String, require: true},//用户名
     "order": {type: Number, require: true},
     "path": {type: String, require: true},
-    "parentId": {type: String, require: true},
+    "parentId": {type: Number, require: true},
     "icon": {type: String}
   },
   // chat: {

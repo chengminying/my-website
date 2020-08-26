@@ -6,17 +6,24 @@ import {
   FileOutlined,
   TeamOutlined,
   UserOutlined,
-} from '@ant-design/icons';
+} from "@ant-design/icons";
 import "./index.less";
+import { getMenus } from "../../axios/http";
 
 const { Footer, Sider, Content } = Layout;
 const { SubMenu } = Menu;
 
-
 export default function Page() {
   const [collapsed, setCollapsed] = useState(false);
+  const [menusList, setMenusList] = useState([]);
 
   useEffect(() => {
+
+    getMenus().then(res => {
+      if(!res.data.success) return ;
+      setMenusList(() => res.data.data);
+    })
+
     return () => {
       // cleanup
     };
@@ -30,25 +37,24 @@ export default function Page() {
     <Layout style={{ minHeight: "100vh" }}>
       <Sider collapsible collapsed={collapsed} onCollapse={onCollapse}>
         <div className="logo">
-          <img src="https://chengmy.oss-cn-hangzhou.aliyuncs.com/MyWebsite/loading.gif" alt=""/>
+          <img
+            src="https://chengmy.oss-cn-hangzhou.aliyuncs.com/MyWebsite/loading.gif"
+            alt=""
+          />
         </div>
-        <Menu theme="dark" defaultSelectedKeys={['1']} mode="inline">
-        <Menu.Item key="1" icon={<PieChartOutlined />}>
-              Option 1
-            </Menu.Item>
-            <Menu.Item key="2" icon={<DesktopOutlined />}>
-              Option 2
-            </Menu.Item>
-            <SubMenu key="sub1" icon={<UserOutlined />} title="User">
-              <Menu.Item key="3">Tom</Menu.Item>
-              <Menu.Item key="4">Bill</Menu.Item>
-              <Menu.Item key="5">Alex</Menu.Item>
-            </SubMenu>
-            <SubMenu key="sub2" icon={<TeamOutlined />} title="Team">
-              <Menu.Item key="6">Team 1</Menu.Item>
-              <Menu.Item key="8">Team 2</Menu.Item>
-            </SubMenu>
-            <Menu.Item key="9" icon={<FileOutlined />} />
+        <Menu theme="dark" defaultSelectedKeys={["1"]} mode="inline">
+          {menusList.map(v => {
+            return (<SubMenu key={v.name} title={v.name}></SubMenu>)
+          })}
+          {/* <SubMenu key="sub1" icon={<UserOutlined />} title="User">
+            <Menu.Item key="3">Tom</Menu.Item>
+            <Menu.Item key="4">Bill</Menu.Item>
+            <Menu.Item key="5">Alex</Menu.Item>
+          </SubMenu>
+          <SubMenu key="sub2" icon={<TeamOutlined />} title="Team">
+            <Menu.Item key="6">Team 1</Menu.Item>
+            <Menu.Item key="8">Team 2</Menu.Item>
+          </SubMenu> */}
         </Menu>
       </Sider>
       <Layout>

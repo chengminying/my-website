@@ -15,7 +15,6 @@ const getMenus = () => {
 }
 
 const postMenus = params => {
-  console.log(params)
   return axios.post(address.postMenus, params);
 }
 

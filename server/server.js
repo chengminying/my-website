@@ -27,20 +27,20 @@ app.use(cookieParser());
 const PORT = 8088;
 
 
+app.all('*',function(req,res,next){
+  res.header('Access-Control-Allow-Origin', '*');//的允许所有域名的端口请求（跨域解决）
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  res.header('Access-Control-Allow-Methods', '*');
+  res.header('Content-Type', 'application/json;charset=utf-8');
+  next();
+});
 
-// app.use("/", express.static(path.resolve("build")));
+app.use("/", express.static(path.resolve("build")));
 
-
-// app.use("/", function(req, res, next) {
-//   console.log(req.url, '++++')
-//   next();
-// })
 app.use('/req', reqRouter);
 
 
 app.use(function(req, res, next) {
-  console.log('88888888888')
-  console.log(req.url);
   if(req.url.startsWith('/req/')) { 
     return next();
   }

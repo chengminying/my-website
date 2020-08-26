@@ -1,132 +1,234 @@
 import React, { useEffect, useState } from "react";
-import { Table, Space } from "antd";
+import { Table, Space, Modal, Form, Input, Button, InputNumber } from "antd";
 import { getMenus, postMenus } from "../../../../axios/http";
 
-
-export default function Menu () {
+export default function Menu() {
+  const [visible, setVisible] = useState(false);
+  const [modify, setModify] = useState(false);
+  const [menuList, setMenuList] = useState(null);
+  const [currentModify, setCurrentModify] = useState({});
+  const [addForm] = Form.useForm();
+  const [modifyForm] = Form.useForm();
 
   const columns = [
     {
       title: "菜单名称",
-      dataIndex: "menuName",
-      key: "menuName"
+      dataIndex: "name",
+      key: "name",
     },
     {
       title: "顺序",
       dataIndex: "order",
-      key: "order"
+      key: "order",
     },
     {
       title: "路由",
       dataIndex: "path",
-      key: "path"
+      key: "path",
     },
     {
       title: "操作",
       dataIndex: "operation",
       key: "operation",
       render: (text, record) => {
-        return <Space size="middle">
-          <a onClick={click}>修改</a>
-          <a>新增</a>
-          <a>删除</a>
-        </Space>
-      }
-    }
+        return (
+          <Space size="middle">
+            <a href="javascript:void(0)" onClick={() => handleClick(record)}>修改</a>
+            <a href="javascript:void(0)" onClick={addMenu}>新增</a>
+            <a href="javascript:void(0)">删除</a>
+          </Space>
+        );
+      },
+    },
   ];
 
-  function click() {
-    const params = {
-      name: "测试",
-      order: 1,
-      path: "manage",
-      parent: 0,
-    }
+  function addMenu() {
+    setVisible(() => true);
+  }
 
-    getMenus().then(res => {
-      console.log(res);
-    })
-
-    postMenus(params).then(res => {
-      console.log(res);
+  function handleClick(record) {
+    setModify(() => true);
+    setCurrentModify(() => record);
+    modifyForm.setFieldsValue({
+      name: record.name,
+      order: record.order,
+      path: record.path
     })
   }
 
   useEffect(() => {
+    getMenus().then((res) => {
+      if (!res.data.success) return;
+      setMenuList(() => res.data.data.map((v) => ({ ...v, key: v.order })));
+    });
+    return () => {};
+  }, []);
+
+  function hideModal() {
+    setVisible(() => false);
+    setModify(() => false);
+  }
+
+  function onFinish (value) {
+    console.log(value);
+    const params = {
+      name: value.name,
+      order: value.order,
+      path: value.path,
+      parentId: 0,
+    };
+
+    // postMenus(params).then((res) => {
+    //   console.log(res);
+    // });
+  }
+
+  return (
+    <>
+      <Table columns={columns} dataSource={menuList} />
+      <Modal
+        title="添加菜单"
+        visible={visible}
+        footer={null}
+        onCancel={hideModal}
+      >
+        <Form layout="inline" onFinish={onFinish} form={addForm}>
+          <Form.Item
+            label="菜单名称"
+            name="name"
+            style={{ width: "46%" }}
+            hasFeedback
+            rules={[
+              {
+                required: true,
+                message: "请输入菜单名称",
+              },
+            ]}
+          >
+            <Input placeholder="菜单名称" />
+          </Form.Item>
+          <Form.Item
+            label="菜单排序"
+            name="order"
+            style={{ width: "46%" }}
+            hasFeedback
+            rules={[
+              {
+                required: true,
+                message: "请调整菜单排序",
+              },
+            ]}
+          >
+            <Input type="number" placeholder="输入数字" />
+          </Form.Item>
+          <Form.Item
+            label="路　　由"
+            name="path"
+            style={{ width: "46%", marginTop: "1rem" }}
+            hasFeedback
+            rules={[
+              {
+                required: true,
+                message: "请输入路由",
+              },
+            ]}
+          >
+            <Input placeholder="输入路由" />
+          </Form.Item>
+          <Form.Item
+            label="菜单图标"
+            name="icon"
+            style={{ width: "93%", marginTop: "1rem", marginLeft: "0.67rem" }}
+            hasFeedback
+            rules={[
+              {
+                required: false,
+                message: "请输入菜单图标链接地址",
+              },
+            ]}
+          >
+            <Input placeholder="请输入图标的链接地址" />
+          </Form.Item>
+          <Form.Item style={{marginLeft: '43%', marginTop: '1rem'}}>
+            <Button type="primary" htmlType="submit" >提交</Button>
+          </Form.Item>
+        </Form>
+      </Modal>
 
 
 
 
 
-    return () => {
-
-    }
-  }, [])
-
-  const data = [
-    {
-      key: 1,
-      menuName: 'John Brown sr.',
-      order: 60,
-      path: 'New York No. 1 Lake Park',
-      children: [
-        {
-          key: 11,
-          name: 'John Brown',
-          age: 42,
-          address: 'New York No. 2 Lake Park',
-        },
-        {
-          key: 12,
-          name: 'John Brown jr.',
-          age: 30,
-          address: 'New York No. 3 Lake Park',
-          children: [
-            {
-              key: 121,
-              name: 'Jimmy Brown',
-              age: 16,
-              address: 'New York No. 3 Lake Park',
-            },
-          ],
-        },
-        {
-          key: 13,
-          name: 'Jim Green sr.',
-          age: 72,
-          address: 'London No. 1 Lake Park',
-          children: [
-            {
-              key: 131,
-              name: 'Jim Green',
-              age: 42,
-              address: 'London No. 2 Lake Park',
-              children: [
-                {
-                  key: 1311,
-                  name: 'Jim Green jr.',
-                  age: 25,
-                  address: 'London No. 3 Lake Park',
-                },
-                {
-                  key: 1312,
-                  name: 'Jimmy Green sr.',
-                  age: 18,
-                  address: 'London No. 4 Lake Park',
-                },
-              ],
-            },
-          ],
-        },
-      ],
-    },
-    {
-      key: 2,
-      name: 'Joe Black',
-      age: 32,
-      address: 'Sidney No. 1 Lake Park',
-    },
-  ];
-
-  return (<Table onClick={click} columns={columns} dataSource={data} />)
+      <Modal
+        title="修改菜单"
+        visible={modify}
+        footer={null}
+        onCancel={hideModal}
+      >
+        <Form layout="inline" onFinish={onFinish} form={modifyForm}>
+          <Form.Item
+            label="菜单名称"
+            name="name"
+            style={{ width: "46%" }}
+            hasFeedback
+            initialValue={currentModify.name}
+            rules={[
+              {
+                required: true,
+                message: "请输入菜单名称",
+              },
+            ]}
+          >
+            <Input placeholder="菜单名称" />
+          </Form.Item>
+          <Form.Item
+            label="菜单排序"
+            name="order"
+            style={{ width: "46%" }}
+            hasFeedback
+            initialValue={currentModify.order}
+            rules={[
+              {
+                required: true,
+                message: "请调整菜单排序",
+              },
+            ]}
+          >
+            <InputNumber style={{width: "100%"}} type="number" placeholder="输入数字" />
+          </Form.Item>
+          <Form.Item
+            label="路　　由"
+            name="path"
+            style={{ width: "46%", marginTop: "1rem" }}
+            hasFeedback
+            rules={[
+              {
+                required: true,
+                message: "请输入路由",
+              },
+            ]}
+          >
+            <Input placeholder="输入路由" />
+          </Form.Item>
+          <Form.Item
+            label="菜单图标"
+            name="icon"
+            style={{ width: "93%", marginTop: "1rem", marginLeft: "0.67rem" }}
+            hasFeedback
+            rules={[
+              {
+                required: false,
+                message: "请输入菜单图标链接地址",
+              },
+            ]}
+          >
+            <Input placeholder="请输入图标的链接地址" />
+          </Form.Item>
+          <Form.Item style={{marginLeft: '43%', marginTop: '1rem'}}>
+            <Button type="primary" htmlType="submit" >修改</Button>
+          </Form.Item>
+        </Form>
+      </Modal>
+    </>
+  );
 }
