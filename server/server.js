@@ -16,9 +16,9 @@ const server = require('http').Server(app);
 //使用body-parser处理请求
 app.use(bodyParser.json());
 
-app.use(bodyParser.urlencoded({
-  extends: true
-}));
+// app.use(bodyParser.urlencoded({
+//   extends: true
+// }));
 
 //使用cookie
 app.use(cookieParser());
@@ -26,28 +26,25 @@ app.use(cookieParser());
 //端口
 const PORT = 8088;
 
+// app.use('/req',function(req,res,next){
+//   res.header('Access-Control-Allow-Origin', '*');//的允许所有域名的端口请求（跨域解决）
+//   res.header('Access-Control-Allow-Headers', '*');
+//   res.header('Access-Control-Allow-Methods', '*');
+//   // res.header('Content-Type', 'application/json;charset=utf-8');
+//   next();
+// });
 
-app.use('/req',function(req,res,next){
-  res.header('Access-Control-Allow-Origin', '*');//的允许所有域名的端口请求（跨域解决）
-  res.header('Access-Control-Allow-Headers', '*');
-  res.header('Access-Control-Allow-Methods', '*');
-  res.header('Content-Type', 'application/json;charset=utf-8');
-  next();
-}); 
-
-// app.use("/", express.static(path.resolve("build")));
+// app.use("/", express.static(path.resolve("../build")));
 
 app.use('/req', reqRouter);
 
 
 app.use(function(req, res, next) {
-  if(req.url.startsWith('/req/') || req.url.startsWith('/static/')) { 
+  if(req.url.startsWith('/req/')) { 
     return next();
   }
-  return res.sendFile(path.resolve('build/index.html'));
-})
-
-
+  return res.sendFile(path.resolve('../build/index.html'));
+});
 
 server.listen(PORT, function() {
   const date = new Date();
