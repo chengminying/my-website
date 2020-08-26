@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const path = require("path");
+const cors = require("cors")
 
 const reqRouter = require("./req");
 
@@ -23,28 +24,34 @@ app.use(bodyParser.json());
 //使用cookie
 app.use(cookieParser());
 
+app.use(cors());
+
 //端口
 const PORT = 8088;
-
-// app.use('/req',function(req,res,next){
-//   res.header('Access-Control-Allow-Origin', '*');//的允许所有域名的端口请求（跨域解决）
-//   res.header('Access-Control-Allow-Headers', '*');
-//   res.header('Access-Control-Allow-Methods', '*');
-//   // res.header('Content-Type', 'application/json;charset=utf-8');
-//   next();
-// });
-
-// app.use("/", express.static(path.resolve("../build")));
 
 app.use('/req', reqRouter);
 
 
-app.use(function(req, res, next) {
-  if(req.url.startsWith('/req/')) { 
-    return next();
-  }
-  return res.sendFile(path.resolve('../build/index.html'));
+app.use('/req', (req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "X-Requested-With");
+  res.header("Access-Control-Allow-Methods","PUT,POST,GET,DELETE,OPTIONS");
+  res.header("X-Powered-By",' 3.2.1')
+  res.header("Content-Type", "application/json;charset=utf-8");
+  next();
 });
+
+app.use("/", express.static(path.resolve("../build")));
+
+
+
+// app.use(function(req, res, next) {
+//   console.log(req.url)
+//   if(req.url.startsWith('/req/') || req.url.startsWith('/static/')) { 
+//     return next();
+//   } 
+//   return res.sendFile(path.resolve('../build/index.html'));
+// });
 
 server.listen(PORT, function() {
   const date = new Date();
