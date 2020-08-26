@@ -41,7 +41,7 @@ app.use('/req', reqRouter);
 
 
 app.use(function(req, res, next) {
-  if(req.url.startsWith('/req/')) { 
+  if(req.url.startsWith('/req/') || req.url.startsWith('/static/')) { 
     return next();
   }
   return res.sendFile(path.resolve('build/index.html'));
