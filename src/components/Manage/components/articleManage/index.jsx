@@ -27,6 +27,5 @@ export default function Article() {
         tabSize: 2,
       }}
     />
-    // <CodeMirror value={`console.log()`}  options={options} />
   );
 }
