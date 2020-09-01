@@ -31,9 +31,6 @@ const PORT = 8088;
 
 app.use('/req', reqRouter);
 
-console.log(global.process.platform, "======")
-
-
 app.use('/req', (req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "X-Requested-With");
@@ -43,9 +40,13 @@ app.use('/req', (req, res, next) => {
   next();
 });
 
-app.use(express.static(path.resolve("build")));
-
-
+var mapPath
+if(global.process.platform === "linux") {
+  mapPath = "build";
+} else {
+  mapPath = "../build";
+}
+app.use(express.static(path.resolve(mapPath)));
 
 // app.use(function(req, res, next) {
 //   console.log(req.url)
