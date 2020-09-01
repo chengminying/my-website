@@ -31,6 +31,8 @@ const PORT = 8088;
 
 app.use('/req', reqRouter);
 
+console.log(global.process.platform, "======")
+
 
 app.use('/req', (req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
