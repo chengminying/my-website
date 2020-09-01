@@ -41,7 +41,7 @@ app.use('/req', (req, res, next) => {
   next();
 });
 
-app.use(express.static(path.resolve("../build")));
+app.use(express.static(path.resolve("build")));
 
 
 
