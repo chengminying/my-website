@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls"
 import "./index.less";
 import { withRouter } from "react-router-dom";
+import { Modal } from "antd";
 
 export default withRouter(function Home(props) {
   console.log(props);
@@ -121,8 +122,15 @@ export default withRouter(function Home(props) {
     return rayCaster.intersectObjects(scene.children, true);
   }
 
+  function touchStart() {
+    Modal.error({
+      title: "暂不支持移动端",
+      content: "如果需要在移动端访问，需要把请求方式，修改为桌面请求方式"
+    })
+  }
+
   return (
-    <div className="home-container" ref={(ref) => (container.current = ref)} onDoubleClick={handleDoubleClick}>
+    <div className="home-container" ref={(ref) => (container.current = ref)} onDoubleClick={handleDoubleClick} onTouchStart={touchStart}>
       {/* <Link to="/page">文章</Link> */}
     </div>
   );
