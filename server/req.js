@@ -52,7 +52,7 @@ Router.post("/postMenus", function (req, res) {
 //
 Router.get("/getMenus", function (req, res) {
   menuModel.find({}, function (err, doc) {
-    if (!doc.length) return;
+    if (!doc) return;
     //数据处理 目录递归
     const new_doc = doc.sort((a, b) => {
       return a.order - b.order;

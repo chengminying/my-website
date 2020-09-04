@@ -2,9 +2,10 @@ import React, { useRef, useEffect } from "react";
 import * as THREE from 'three';
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls"
 import "./index.less";
-import { Link } from "react-router-dom";
+import { withRouter } from "react-router-dom";
 
-export default function Home() {
+export default withRouter(function Home(props) {
+  console.log(props);
   const container = useRef(null);
   const immutable = useRef({
     scene: null,
@@ -58,7 +59,7 @@ export default function Home() {
     canvas.setAttribute('height', 256);
     canvas.style.position = 'absolute';
 
-    const str = '点击跳转文章';
+    const str = '双击击跳转文章';
     const ctx = canvas.getContext('2d');
     ctx.font = "Bold 45px Arial"; 
     ctx.textAlign="center";
@@ -78,10 +79,6 @@ export default function Home() {
     planeMesh.name = "跳转"
     scene.add(planeMesh);
 
-
-
-
-
     renderAnimation();
 
     return () => {
@@ -98,7 +95,7 @@ export default function Home() {
     let selectObjects = immutable.current.selectObjects;
     selectObjects = intersect(e);
     if(selectObjects[0] && selectObjects[0].object.name === "跳转") {
-      window.location.href += "page";
+      props.history.push("page")
     }
     console.log(selectObjects);
   }
@@ -129,4 +126,4 @@ export default function Home() {
       {/* <Link to="/page">文章</Link> */}
     </div>
   );
-}
+})
