@@ -4,8 +4,9 @@ const express = require("express");
 const Router = express.Router();
 
 const model = require("./model");
-const menuModel = model.getModel("menu"); //user是model文件定义的
-// const ChatModel = model.getModel('chat')
+const menuModel = model.getModel("menu");
+const articleIndexModel = model.getModel("articleIndex");
+const articleModel = model.getModel("article");
 
 const _filter = { __v: 0 }; //定义查询结果过滤字段
 
@@ -26,20 +27,24 @@ const _filter = { __v: 0 }; //定义查询结果过滤字段
 // })
 
 Router.post("/postMenus", function (req, res) {
-  const { id, name, order, parentId, path } = req.body;
+  const { name, order, parentId, path } = req.body;
   console.log(req.body);
-  menuModel.findOne({ id, name }, function (err, doc) {
+  menuModel.findOne({ name, path }, function (err, doc) {
     if (doc) {
       return res.json({ success: false, msg: "菜单名重复" });
     }
-    const model = new menuModel({ id, name, order, parentId, path });
+    const model = new menuModel({ name, order, parentId, path });
     model.save(function (e, d) {
       if (e) {
         return res.json({ success: false, msg: "后端出错了", err: e });
       }
       const { name, order, parent, path, _id } = d;
       // res.cookie("user_id", _id);
-      return res.json({ success: true, data: { name, order, parent, path, _id } });
+      return res.json({
+        success: true,
+        msg: "添加成功",
+        data: { name, order, parent, path, _id },
+      });
     });
   });
 });
@@ -47,19 +52,57 @@ Router.post("/postMenus", function (req, res) {
 //
 Router.get("/getMenus", function (req, res) {
   menuModel.find({}, function (err, doc) {
+    if (!doc.length) return;
     //数据处理 目录递归
-    const ancestorId = 0;
-    const result = []
-    for(let i = 0; i < doc.length; i++) {
-      if(doc[i].parentId === ancestorId) {
-        result.push(doc[i])
-      } else {
-
-      }
-    }
-    return res.json({ success: true, data: result });
+    const new_doc = doc.sort((a, b) => {
+      return a.order - b.order;
+    });
+    return res.json({ success: true, msg: "", data: new_doc });
   });
 });
+
+Router.post("/updateMenu", function (req, res) {
+  const { name, order, path, _id, icon } = req.body;
+  menuModel.findOne({ _id }, function (err, doc) {
+    menuModel.update({ name, order, path, icon }, function (err, doc) {
+      if (!err) {
+        return res.json({ success: true, msg:"修改成功", num: doc.nModified });
+      }
+      return res.json({ success: false, msg: "修改失败" });
+    });
+  });
+});
+
+Router.post("/saveArticle", function(req, res) {
+  const { path, order, content, title } = req.body;
+  menuModel.findOne({ path }, function (err, doc) {
+    if(!doc) return res.json({ success: false, msg: "选择菜单出错"});
+    const model = new articleIndexModel({ path, order, title });
+    model.save(function(e, d) {
+      if(e) return res.json({ success: false, msg: "保存文章目录出错了", err: e });
+      const _model = new articleModel({ content, _id: d._id, title });
+      _model.save(function(e, d) {
+        if(e) return res.json({ success: false, msg: "保存文章内容出错了", err: e });
+        if(d) return res.json({ success: true, msg: "文章保存成功", data: { path: d.path, _id: d._id }});
+      })
+    })
+  })
+});
+
+Router.get("/getArticleIndex", function(req, res) {
+  articleIndexModel.find({}, function (err, doc) {
+    if (!doc) return;
+    return res.json({ success: true, msg: "请求文章成功", data: doc });
+  });
+});
+
+Router.get("/getArticle", function(req, res) {
+  const { _id } = req.query;
+  articleModel.findOne({ _id }, function(err, doc) {
+    if(!doc) return res.json({ success: false, msg: "获取文章出错"});
+    return res.json({success: true, msg: "文章获取成功", data: doc});
+  })
+})
 // //用户注册，查询用户是否存在，再创建
 
 // //用户登录，查询用户名和密码

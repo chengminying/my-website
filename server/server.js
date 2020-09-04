@@ -64,5 +64,5 @@ server.listen(PORT, function() {
   const t = date.getHours();
   const mi = date.getMinutes();
   const s = date.getSeconds();
-  console.log("node服务启动成功,端口为:", PORT, "时间为:", y + "年" + m + "月" + d + "日" + t + "时" + mi + "分" + s + "秒");
+  console.log("node服务启动成功,端口为:", PORT, "时间为:", y + "年" + m + 1 + "月" + d + "日" + t + "时" + mi + "分" + s + "秒");
 })

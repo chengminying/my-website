@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Table, Space, Modal, Form, Input, Button, InputNumber } from "antd";
-import { getMenus, postMenus } from "../../../../axios/http";
+import { Table, Space, Modal, Form, Input, Button, InputNumber, message } from "antd";
+import { getMenus, postMenus, updateMenu } from "../../../../axios/http";
 
 export default function Menu() {
   const [visible, setVisible] = useState(false);
@@ -33,9 +33,9 @@ export default function Menu() {
       render: (text, record) => {
         return (
           <Space size="middle">
-            <a href="" onClick={() => handleClick(record)}>修改</a>
-            <a href="" onClick={addMenu}>新增</a>
-            <a href="">删除</a>
+            <a href="#!;" onClick={() => handleClick(record)}>修改</a>
+            <a href="#!;" onClick={addMenu}>新增</a>
+            {/* <a href="#!;">删除</a> */}
           </Space>
         );
       },
@@ -57,10 +57,7 @@ export default function Menu() {
   }
 
   useEffect(() => {
-    getMenus().then((res) => {
-      if (!res.data.success) return;
-      setMenuList(() => res.data.data.map((v) => ({ ...v, key: v.order })));
-    });
+    getMenuList()
     return () => {};
   }, []);
 
@@ -69,8 +66,14 @@ export default function Menu() {
     setModify(() => false);
   }
 
+  function getMenuList() {
+    getMenus().then((res) => {
+      if (!res.data.success) return;
+      setMenuList(() => res.data.data.map((v) => ({ ...v, key: v._id })));
+    });
+  }
+
   function onFinish (value) {
-    console.log(value);
     const params = {
       name: value.name,
       order: value.order,
@@ -78,9 +81,34 @@ export default function Menu() {
       parentId: 0,
     };
 
-    // postMenus(params).then((res) => {
-    //   console.log(res);
-    // });
+    postMenus(params).then((res) => {
+      if(res.data.success) {
+        message.success(res.data.msg);
+        hideModal();
+      } else {
+        message.error(res.data.msg);
+      }
+    });
+  }
+
+  function update (value) {
+    const params = {
+      name: value.name,
+      order: value.order,
+      path: value.path,
+      icon: "",
+      _id: currentModify._id
+    }
+
+    updateMenu(params).then(res => {
+      if(res.data.success) {
+        getMenuList();
+        message.success(res.data.msg);
+        hideModal();
+      } else {
+        message.error(res.data.msg);
+      }
+    })
   }
 
   return (
@@ -156,16 +184,13 @@ export default function Menu() {
       </Modal>
 
 
-
-
-
       <Modal
         title="修改菜单"
         visible={modify}
         footer={null}
         onCancel={hideModal}
       >
-        <Form layout="inline" onFinish={onFinish} form={modifyForm}>
+        <Form layout="inline" onFinish={update} form={modifyForm}>
           <Form.Item
             label="菜单名称"
             name="name"

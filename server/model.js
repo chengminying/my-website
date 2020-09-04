@@ -10,21 +10,23 @@ mongoose.connection.on('connected', function() {
 //model
 const models = {
   menu: {
-    "id": {type: Number },
     'name': {type: String, require: true},//用户名
     "order": {type: Number, require: true},
     "path": {type: String, require: true},
     "parentId": {type: Number, require: true},
     "icon": {type: String}
   },
-  // chat: {
-  //     'chat_id': {type: String, require: true},//聊天信息id
-  //     'from': {type: String, require: true},//发送者
-  //     'to': {type: String, require: true},//接收者
-  //     'msg': {type: String, require: true},//发送内容
-  //     'create_time': {type: Number, default: new Date().getTime()},//时间戳
-  //     'is_read': {type: String, default: false},//消息是否已读
-  // }
+  articleIndex: {
+    path: {type: String, require: true},
+    order: {type: Number, require: true},
+    title: {type: String, require: true},
+    create_time: {type: Number, default: new Date().getTime()},
+  },
+  article: {
+    id: {type: String, require: true},
+    title: {type: String, require: true},
+    content: {type: String, require: true},
+  }
 }
 
 for (let i in models) {
