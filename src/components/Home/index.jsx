@@ -125,7 +125,7 @@ export default withRouter(function Home(props) {
   function touchStart() {
     Modal.error({
       title: "暂不支持移动端",
-      content: "如果需要在移动端访问，需要把请求方式，修改为桌面请求方式"
+      content: "请使用电脑端访问"
     })
   }
 

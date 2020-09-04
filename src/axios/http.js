@@ -12,7 +12,9 @@ const address = {
 
   saveArticle: url + "saveArticle",
   getArticleIndex: url + "getArticleIndex",
-  getArticle: url + "getArticle"
+  getArticle: url + "getArticle",
+  updateArticle: url + "updateArticle",
+  deleteArticle: url + "deleteArticle",
 }
 
 const getMenus = () => {
@@ -39,6 +41,14 @@ const getArticle = params => {
   return axios.get(address.getArticle, {params});
 }
 
+const updateArticle = params => {
+  return axios.post(address.updateArticle, params);
+}
+
+const deleteArticle = params => {
+  return axios.get(address.deleteArticle, {params});
+}
+
 export {
   getMenus,
   postMenus,
@@ -47,4 +57,6 @@ export {
   saveArticle,
   getArticleIndex,
   getArticle,
+  updateArticle,
+  deleteArticle,
 }

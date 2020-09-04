@@ -28,7 +28,6 @@ const _filter = { __v: 0 }; //定义查询结果过滤字段
 
 Router.post("/postMenus", function (req, res) {
   const { name, order, parentId, path } = req.body;
-  console.log(req.body);
   menuModel.findOne({ name, path }, function (err, doc) {
     if (doc) {
       return res.json({ success: false, msg: "菜单名重复" });
@@ -63,46 +62,98 @@ Router.get("/getMenus", function (req, res) {
 
 Router.post("/updateMenu", function (req, res) {
   const { name, order, path, _id, icon } = req.body;
-  menuModel.findOne({ _id }, function (err, doc) {
-    menuModel.update({ name, order, path, icon }, function (err, doc) {
-      if (!err) {
-        return res.json({ success: true, msg:"修改成功", num: doc.nModified });
-      }
-      return res.json({ success: false, msg: "修改失败" });
+  menuModel.update({ _id }, { name, order, path, icon }, function (err, doc) {
+    if (!err) {
+      return res.json({ success: true, msg: "修改成功", num: doc.nModified });
+    }
+    return res.json({ success: false, msg: "修改失败" });
+  });
+});
+
+Router.post("/saveArticle", function (req, res) {
+  const { path, order, content, title } = req.body;
+  menuModel.findOne({ path }, function (err, doc) {
+    if (!doc) return res.json({ success: false, msg: "选择菜单出错" });
+    const model = new articleIndexModel({ path, order, title });
+    model.save(function (e, d) {
+      if (e)
+        return res.json({ success: false, msg: "保存文章目录出错了", err: e });
+      const _model = new articleModel({ content, _id: d._id, title });
+      _model.save(function (e, d) {
+        if (e)
+          return res.json({
+            success: false,
+            msg: "保存文章内容出错了",
+            err: e,
+          });
+        if (d)
+          return res.json({
+            success: true,
+            msg: "文章保存成功",
+            data: { path: d.path, _id: d._id },
+          });
+      });
     });
   });
 });
 
-Router.post("/saveArticle", function(req, res) {
-  const { path, order, content, title } = req.body;
-  menuModel.findOne({ path }, function (err, doc) {
-    if(!doc) return res.json({ success: false, msg: "选择菜单出错"});
-    const model = new articleIndexModel({ path, order, title });
-    model.save(function(e, d) {
-      if(e) return res.json({ success: false, msg: "保存文章目录出错了", err: e });
-      const _model = new articleModel({ content, _id: d._id, title });
-      _model.save(function(e, d) {
-        if(e) return res.json({ success: false, msg: "保存文章内容出错了", err: e });
-        if(d) return res.json({ success: true, msg: "文章保存成功", data: { path: d.path, _id: d._id }});
-      })
-    })
-  })
-});
-
-Router.get("/getArticleIndex", function(req, res) {
+Router.get("/getArticleIndex", function (req, res) {
   articleIndexModel.find({}, function (err, doc) {
     if (!doc) return;
     return res.json({ success: true, msg: "请求文章成功", data: doc });
   });
 });
 
-Router.get("/getArticle", function(req, res) {
+Router.get("/getArticle", function (req, res) {
   const { _id } = req.query;
-  articleModel.findOne({ _id }, function(err, doc) {
-    if(!doc) return res.json({ success: false, msg: "获取文章出错"});
-    return res.json({success: true, msg: "文章获取成功", data: doc});
-  })
-})
+  articleModel.findOne({ _id }, function (err, doc) {
+    if (!doc) return res.json({ success: false, msg: "获取文章出错" });
+    return res.json({ success: true, msg: "文章获取成功", data: doc });
+  });
+});
+
+Router.post("/updateArticle", function (req, res) {
+  const { _id, title, order, content } = req.body;
+  if (content) {
+    articleModel.update({ _id }, { content }, function (err, doc) {
+      if (!err) {
+        return res.json({
+          success: true,
+          msg: "修改成功",
+          num: doc.nModified,
+        });
+      }
+      return res.json({ success: false, msg: "修改文章失败" });
+    });
+  } else {
+    articleIndexModel.update({ _id }, { title, order }, function (err, doc) {
+      if (!err) {
+        return res.json({
+          success: true,
+          msg: "修改成功",
+          num: doc.nModified,
+        });
+      }
+      return res.json({ success: false, msg: "修改文章目录失败" });
+    });
+  }
+});
+
+Router.get("/deleteArticle", function(req, res) {
+  const { _id } = req.query;
+  let res1, res2;
+  articleIndexModel.findByIdAndDelete(_id, function(err, doc) {
+    doc ? res1 = true : res1 = false;
+  });
+  articleModel.findByIdAndDelete(_id, function(err, doc) {
+    doc ? res2 = true : res1 = false;
+  });  
+  if(res1 && res2) {
+    return res.json({ success: true, msg: "删除文章成功" });
+  } else {
+    return res.json({ success: false, msg: "删除文章失败" });
+  }
+});
 // //用户注册，查询用户是否存在，再创建
 
 // //用户登录，查询用户名和密码

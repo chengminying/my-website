@@ -85,6 +85,7 @@ export default function Menu() {
       if(res.data.success) {
         message.success(res.data.msg);
         hideModal();
+        getMenuList();
       } else {
         message.error(res.data.msg);
       }
@@ -147,7 +148,7 @@ export default function Menu() {
               },
             ]}
           >
-            <Input type="number" placeholder="输入数字" />
+            <InputNumber type="number" placeholder="输入数字" />
           </Form.Item>
           <Form.Item
             label="路　　由"
