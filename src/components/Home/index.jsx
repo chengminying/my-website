@@ -100,7 +100,7 @@ export default withRouter(function Home(props) {
     if (selectObjects[0] && selectObjects[0].object.name === "跳转") {
       props.history.push("page");
     }
-    console.log(selectObjects);
+    // console.log(selectObjects);
   }
 
   function intersect(e) {
