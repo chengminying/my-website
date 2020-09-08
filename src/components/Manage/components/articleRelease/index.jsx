@@ -62,7 +62,8 @@ export default withRouter(function ArticleRelease(props) {
   }, [params]);
 
   function _getArticle() {
-    if (!params.current) return;
+    if(!params.current) return;
+    if (Object.keys(params.current).length === 0) return;
     const { _id } = params.current;
     getArticle({ _id }).then((res) => {
       if (res.data.success) {
@@ -204,7 +205,7 @@ export default withRouter(function ArticleRelease(props) {
             hasFeedback
             rules={[{ required: true, message: "请输入文章标题" }]}
           >
-            <Input disabled placeholder="请输入文章标题" />
+            <Input disabled={params.current && Object.keys(params.current).length ? true : false } placeholder="请输入文章标题" />
           </Form.Item>
           <Form.Item
             label="选择目录"
