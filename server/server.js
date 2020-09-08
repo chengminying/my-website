@@ -4,7 +4,7 @@ const cookieParser = require("cookie-parser");
 const path = require("path");
 const cors = require("cors")
 
-const reqRouter = require("./req");
+
 
 // console.log(reqRouter)
 
@@ -17,28 +17,30 @@ const server = require('http').Server(app);
 //使用body-parser处理请求
 app.use(bodyParser.json());
 
-// app.use(bodyParser.urlencoded({
-//   extends: true
-// }));
+app.use(bodyParser.urlencoded({
+  extends: true
+}));
 
 //使用cookie
 app.use(cookieParser());
 
-app.use(cors());
+// app.use(cors());
+
+app.use(cors({credentials: true, origin: true}));
 
 //端口
 const PORT = 8088;
-
+const reqRouter = require("./req");
 app.use('/req', reqRouter);
 
-app.use('/req', (req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", "X-Requested-With");
-  res.header("Access-Control-Allow-Methods","PUT,POST,GET,DELETE,OPTIONS");
-  res.header("X-Powered-By",' 3.2.1')
-  res.header("Content-Type", "application/json;charset=utf-8");
-  next();
-});
+// app.use('/req', (req, res, next) => {
+//   res.header("Access-Control-Allow-Origin", "*");
+//   res.header("Access-Control-Allow-Headers", "X-Requested-With");
+//   res.header("Access-Control-Allow-Methods","PUT,POST,GET,DELETE,OPTIONS");
+//   res.header("X-Powered-By",' 3.2.1')
+//   res.header("Content-Type", "application/json;charset=utf-8");
+//   next();
+// });
 
 var mapPath
 if(global.process.platform === "linux") {
@@ -52,8 +54,7 @@ app.use(express.static(path.resolve(mapPath)));
 //   console.log(req.url)
 //   if(req.url.startsWith('/req/') || req.url.startsWith('/static/')) { 
 //     return next();
-//   } 
-//   return res.sendFile(path.resolve('../build/index.html'));
+//   }
 // });
 
 server.listen(PORT, function() {

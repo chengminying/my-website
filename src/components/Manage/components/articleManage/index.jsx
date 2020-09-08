@@ -16,9 +16,10 @@ import {
   deleteArticle,
 } from "../../../../axios/http";
 import { ExclamationCircleOutlined } from "@ant-design/icons";
+import { withRouter } from "react-router-dom";
 const { confirm } = Modal;
 
-export default function ArticleManage() {
+export default withRouter(function ArticleManage(props) {
   const [tableData, setTableData] = useState([]);
   const [visible, setVisible] = useState(false);
   const [formInstance] = Form.useForm();
@@ -84,6 +85,10 @@ export default function ArticleManage() {
     });
   }
 
+  function modifyContent(record) {
+    props.history.push({pathname: "articleRelease", query: {_id: record._id}});
+  }
+
   function onFinish(value) {
     const params = {
       _id: value._id,
@@ -106,6 +111,9 @@ export default function ArticleManage() {
       dataIndex: "name",
       key: "name",
       width: "50%",
+      render: (text, record) => {
+        return record.operation ? <a href="#!;" onClick={() => modifyContent(record)}>{text}</a> : text;
+      }
     },
     {
       title: "操作",
@@ -115,10 +123,8 @@ export default function ArticleManage() {
       render: (text, record) => {
         return record.operation ? (
           <Space size="middle">
-            <a href="#!;" onClick={() => handleModify(record)}>
-              修改
-            </a>
-            <a href="#!;" onClick={() => handleRemove(record)}>
+            <a href="#!" onClick={() => handleModify(record)}>修改</a>
+            <a href="#!" onClick={() => handleRemove(record)}>
               删除
             </a>
           </Space>
@@ -193,4 +199,4 @@ export default function ArticleManage() {
       </Modal>
     </>
   );
-}
+});

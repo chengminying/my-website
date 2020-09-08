@@ -4,12 +4,15 @@ import { Controlled as CodeMirror } from "react-codemirror2";
 import "codemirror/mode/htmlmixed/htmlmixed";
 import "codemirror/theme/yonce.css";
 import "codemirror/keymap/sublime";
-import { saveArticle, getMenus } from "../../../../axios/http";
+import { saveArticle, getMenus, getArticle, updateArticle } from "../../../../axios/http";
 import { Button, Select, Modal, Form, Input, InputNumber, message } from "antd";
+import { withRouter } from "react-router-dom";
+import { ExclamationCircleOutlined } from '@ant-design/icons';
+
 
 const Option = Select.Option;
 
-export default function ArticleRelease() {
+export default withRouter(function ArticleRelease(props) {
   const content = useRef(null);
   const left = useRef(null);
   const right = useRef(null);
@@ -19,9 +22,10 @@ export default function ArticleRelease() {
   const [iframeValue, setIframeValue] = useState("");
   const [visible, setVisible] = useState(false);
   const [menuList, setMenuList] = useState([]);
+  const [formInstance] = Form.useForm();
+  const params = useRef(props.location.query);
 
   useEffect(() => {
-
     getMenusList();
 
     resize.current.onmousedown = function (e) {
@@ -50,16 +54,33 @@ export default function ArticleRelease() {
     return () => {};
   }, []);
 
-  function getMenusList () {
-    getMenus().then(res => {
-      if(res.data.success) {
+  useEffect(() => {
+    _getArticle();
+    return () => {
+      // cleanup
+    };
+  }, [params]);
+
+  function _getArticle() {
+    if (!params.current) return;
+    const { _id } = params.current;
+    getArticle({ _id }).then((res) => {
+      if (res.data.success) {
+        setCodeValue(() => res.data.data.content);
+        setIframeValue(() => res.data.data.content);
+      }
+    });
+  }
+
+  function getMenusList() {
+    getMenus().then((res) => {
+      if (res.data.success) {
         setMenuList(() => res.data.data);
       }
-    })
+    });
   }
 
   function handleBeforeChange(editor, data, value) {
-    // console.log(editor, data, value, "before");
     setCodeValue(value);
   }
 
@@ -78,29 +99,51 @@ export default function ArticleRelease() {
     setVisible(true);
   }
 
+  function modify() {
+    Modal.confirm({
+      title: '确认修改',
+      icon: <ExclamationCircleOutlined />,
+      content: '确认修改当前文章的内容吗?',
+      okText: '确认',
+      cancelText: '取消',
+      onOk() {
+        updateArticle({_id: params.current._id, content: codeValue}).then(res => {
+          if(res.data.success) {
+            message.success(res.data.msg);
+            setCodeValue("");
+            setIframeValue("");
+          } else {
+            message.error(res.data.msg);
+          }
+        })
+      },
+      onCancel() {
+      },
+    });
+  
+  }
+
   function submit(value) {
     const editor = editorInstance.current;
     const editor_value = editor.getValue();
-
-    console.log(editor_value);
-    console.log(value);
 
     const params = {
       title: value.title,
       path: value.path,
       order: value.order,
       content: editor_value,
-    }
+    };
 
-    saveArticle(params).then(res => {
-      if(res.data.success) {
+    saveArticle(params).then((res) => {
+      if (res.data.success) {
         message.success(res.data.msg);
         hideModal();
+        setCodeValue("");
+        setIframeValue("");
       } else {
         message.error(res.data.msg);
       }
-    })
-
+    });
   }
 
   return (
@@ -147,8 +190,13 @@ export default function ArticleRelease() {
           // sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
         ></iframe>
       </div>
-      <Modal title="提交文章" visible={visible} onCancel={hideModal} footer={null}>
-        <Form layout="inline" onFinish={submit}>
+      <Modal
+        title="提交文章"
+        visible={visible}
+        onCancel={hideModal}
+        footer={null}
+      >
+        <Form layout="inline" onFinish={submit} form={formInstance}>
           <Form.Item
             label="文章标题"
             name="title"
@@ -156,7 +204,7 @@ export default function ArticleRelease() {
             hasFeedback
             rules={[{ required: true, message: "请输入文章标题" }]}
           >
-            <Input placeholder="请输入文章标题" />
+            <Input disabled placeholder="请输入文章标题" />
           </Form.Item>
           <Form.Item
             label="选择目录"
@@ -165,12 +213,12 @@ export default function ArticleRelease() {
             hasFeedback
             rules={[{ required: true, message: "请选择目录" }]}
           >
-            <Select
-              placeholder="选择目录"
-              style={{ width: "100%" }}
-              allowClear
-            >
-              {menuList.map(v => <Option key={v.path} value={v.path}>{v.name}</Option>)}
+            <Select placeholder="选择目录" style={{ width: "100%" }} allowClear>
+              {menuList.map((v) => (
+                <Option key={v.path} value={v.path}>
+                  {v.name}
+                </Option>
+              ))}
             </Select>
           </Form.Item>
           <Form.Item
@@ -180,10 +228,15 @@ export default function ArticleRelease() {
             hasFeedback
             rules={[{ required: true, message: "请输入文章顺序" }]}
           >
-            <InputNumber placeholder="请输入文章排列顺序" style={{ width: "100%" }}/>
+            <InputNumber
+              placeholder="请输入文章排列顺序"
+              style={{ width: "100%" }}
+            />
           </Form.Item>
-          <Form.Item style={{marginLeft: '43%', marginTop: '1rem'}}>
-            <Button type="primary" htmlType="submit" >保存</Button>
+          <Form.Item style={{ marginLeft: "43%", marginTop: "1rem" }}>
+            <Button type="primary" htmlType="submit">
+              {params.current ? "修改" : "提交"}
+            </Button>
           </Form.Item>
         </Form>
       </Modal>
@@ -191,10 +244,16 @@ export default function ArticleRelease() {
         <Button type="primary" onClick={run}>
           运行
         </Button>
-        <Button type="primary" onClick={showModal}>
-          提交
-        </Button>
+        {params.current ? (
+          <Button type="primary" onClick={modify}>
+            修改
+          </Button>
+        ) : (
+          <Button type="primary" onClick={showModal}>
+            提交
+          </Button>
+        )}
       </div>
     </div>
   );
-}
+});

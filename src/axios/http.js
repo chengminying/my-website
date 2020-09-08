@@ -1,5 +1,9 @@
 import axios from 'axios';
 
+axios.defaults.withCredentials = true; // 允许携带cookie
+
+axios.withCredentials = true;
+
 const online = "https://www.chengmy.com.cn/req/";
 const local = "http://localhost:8088/req/";
 
@@ -15,6 +19,8 @@ const address = {
   getArticle: url + "getArticle",
   updateArticle: url + "updateArticle",
   deleteArticle: url + "deleteArticle",
+
+  login: url + "login",
 }
 
 const getMenus = () => {
@@ -49,6 +55,10 @@ const deleteArticle = params => {
   return axios.get(address.deleteArticle, {params});
 }
 
+const login = params => {
+  return axios.post(address.login, params);
+}
+
 export {
   getMenus,
   postMenus,
@@ -59,4 +69,6 @@ export {
   getArticle,
   updateArticle,
   deleteArticle,
+
+  login
 }

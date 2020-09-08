@@ -1,28 +1,33 @@
 import React, { useEffect, useState, useRef } from "react";
-import { Layout, Menu, Button } from "antd";
-// import {
-//   DesktopOutlined,
-//   PieChartOutlined,
-//   FileOutlined,
-//   TeamOutlined,
-//   UserOutlined,
-// } from "@ant-design/icons";
+import { Layout, Menu, Form, Space, Input, Button } from "antd";
+import {
+  PlayCircleOutlined,
+  RedoOutlined,
+  LoginOutlined,
+} from "@ant-design/icons";
 import "./index.less";
 import { Controlled as CodeMirror } from "react-codemirror2";
 import "codemirror/mode/htmlmixed/htmlmixed";
 import "codemirror/theme/yonce.css";
 import "codemirror/keymap/sublime";
-import { getMenus, getArticleIndex, getArticle } from "../../axios/http";
+import "codemirror/addon/scroll/simplescrollbars";
+import "codemirror/addon/scroll/simplescrollbars.css";
+import { getMenus, getArticleIndex, getArticle, login } from "../../axios/http";
+import Modal from "antd/lib/modal/Modal";
+import { withRouter } from "react-router-dom";
 
 const { Footer, Sider, Content } = Layout;
 const { SubMenu } = Menu;
 
-export default function Page() {
+export default withRouter(function Page(props) {
   const [collapsed, setCollapsed] = useState(false);
   const [menusList, setMenusList] = useState([]);
   const [articleList, setArticleList] = useState([]);
   const [openKey, setOpenKey] = useState("");
   const [selectKey, setSelectKey] = useState("");
+  const flagKey = useRef(0);
+  const [initCode, setInitCode] = useState("");
+  const [modalVisible, setModalVisible] = useState(false);
 
   //codemirror
   const content = useRef(null);
@@ -32,7 +37,6 @@ export default function Page() {
   const editorInstance = useRef(null);
   const [iframeValue, setIframeValue] = useState("");
   const [codeValue, setCodeValue] = useState("");
-  // const [articleConten, setArticleConten] = useState("");
 
   useEffect(() => {
     Promise.all([getMenus(), getArticleIndex()]).then((res) => {
@@ -46,8 +50,10 @@ export default function Page() {
       const firstMenu = res[0].data.data[0];
       setOpenKey(firstMenu.path);
       //默认选择菜单第一项第一个
-      const firstItem = res[1].data.data.filter(v => v.path === firstMenu.path).sort((a, b) => a.order - b.order);
-      setSelectKey(firstItem[0].title)
+      const firstItem = res[1].data.data
+        .filter((v) => v.path === firstMenu.path)
+        .sort((a, b) => a.order - b.order);
+      setSelectKey(firstItem[0].title);
       //文章
       _getArticle(firstItem[0]._id);
       run();
@@ -83,33 +89,22 @@ export default function Page() {
     };
   }, []);
 
-  // function getMenusList() {
-  //   getMenus().then((res) => {
-  //     if (!res.data.success) return;
-  //     setMenusList(() => res.data.data);
-  //   });
-  // }
-
-  // function _getArticleIndex() {
-  //   getArticleIndex().then((res) => {
-  //     if (!res.data.success) return;
-  //     setArticleList(() => res.data.data);
-  //   });
-  // }
-
   function _getArticle(id) {
     getArticle({ _id: id }).then((res) => {
-      if(res.data.success) {
+      if (res.data.success) {
         setCodeValue(() => res.data.data.content);
+        setInitCode(() => res.data.data.content);
         run();
       }
     });
   }
 
-  function menuClick({keyPath}) {
-    if(keyPath.length < 1) return ;
+  function menuClick({ keyPath }) {
+    if (keyPath.length < 1) return;
     setSelectKey(keyPath[0]);
-    const article = articleList.filter(v => v.path === keyPath[1]).filter(v => v.title === keyPath[0])[0];
+    const article = articleList
+      .filter((v) => v.path === keyPath[1])
+      .filter((v) => v.title === keyPath[0])[0];
     _getArticle(article._id);
   }
 
@@ -118,7 +113,15 @@ export default function Page() {
   }
 
   function onCollapse() {
-    setCollapsed((collapsed) => !collapsed);
+    // console.log(collapsed);
+    if(!collapsed) {
+      setOpenKey(0);
+      flagKey.current = openKey;
+    } else {
+      setOpenKey(flagKey.current);
+      flagKey.current = 0;
+    }
+    setCollapsed(() => !collapsed);
   }
 
   function handleBeforeChange(editor, data, value) {
@@ -132,7 +135,35 @@ export default function Page() {
     setIframeValue(value);
   }
 
-  function reset() {}
+  function reset() {
+    setCodeValue(initCode);
+    setIframeValue(initCode);
+  }
+
+  function hideModal() {
+    setModalVisible(false);
+  }
+
+  function showModal() {
+    login().then(res => {
+      if(res.data.success) {
+        hideModal();
+        props.history.push("manage")
+      }
+    })
+    setModalVisible(true);
+  }
+
+  function onFinish(value) {
+    login(value).then(res => {
+      if(res.data.success) {
+        hideModal();
+        props.history.push("manage")
+      } else {
+        hideModal();
+      }
+    })
+  }
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
@@ -158,7 +189,7 @@ export default function Page() {
             return (
               <SubMenu key={v.path} title={v.name}>
                 {list.map((a) => {
-                  return <Menu.Item key={a.title}>{a.title}</Menu.Item>;
+                  return <Menu.Item key={a.title} >{a.title}</Menu.Item>;
                 })}
               </SubMenu>
             );
@@ -170,11 +201,11 @@ export default function Page() {
           <div className="site-layout-background">
             <div
               ref={(ref) => (content.current = ref)}
-              className="manage-content"
+              className="page-content"
             >
               <div
                 ref={(ref) => (left.current = ref)}
-                className="manage-content-left"
+                className="page-content-left"
               >
                 <CodeMirror
                   className="codemirror-manage"
@@ -193,20 +224,21 @@ export default function Page() {
                     // indentUnit: 2,// 缩进单位，默认2
                     keyMap: "sublime", // 快捷键集合
                     styleActiveLine: true, // 激活当前行样式
+                    scrollbarStyle: "overlay",
                     gutters: [
-                      "CodeMirror-linenumbers",
-                      "CodeMirror-foldgutter",
+                      // "CodeMirror-linenumbers",
+                      // "CodeMirror-foldgutter",
                     ], // 用来添加额外的gutter
                   }}
                 />
               </div>
               <div
                 ref={(ref) => (resize.current = ref)}
-                className="manage-content-resize"
+                className="page-content-resize"
               ></div>
               <div
                 ref={(ref) => (right.current = ref)}
-                className="manage-content-right"
+                className="page-content-right"
               >
                 <iframe
                   title="three"
@@ -220,20 +252,65 @@ export default function Page() {
                   // sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
                 ></iframe>
               </div>
-              <div className="manage-content-bottom">
-                <Button type="primary" onClick={run}>
-                  运行
-                </Button>
-                <Button type="primary" onClick={reset}>
-                  重置
-                </Button>
+              <div className="page-content-bottom">
+                <Space size={100}>
+                  <a href="#!" onClick={run}>
+                    <PlayCircleOutlined />
+                    <span>运行</span>
+                  </a>
+
+                  <a href="#!" onClick={reset}>
+                    <RedoOutlined />
+                    <span>重置</span>
+                  </a>
+
+                  <a href="#!" onClick={showModal}>
+                    <LoginOutlined />
+                    <span>登陆</span>
+                  </a>
+                </Space>
               </div>
             </div>
           </div>
         </Content>
+        <Modal
+          visible={modalVisible}
+          footer={null}
+          onCancel={hideModal}
+          title="登陆"
+        >
+          <Form 
+            layout="horizontal"
+            onFinish={onFinish}
+          >
+            <Form.Item
+              label="用户"
+              name="username"
+              // style={{ marginTop: "1rem", width: "53.3%" }}
+              hasFeedback
+              rules={[{ required: true, message: "请输入用户名" }]}
+            >
+              <Input placeholder="请输入用户名" />
+            </Form.Item>
+            <Form.Item
+              label="密码"
+              name="pwd"
+              // style={{ marginTop: "1rem", width: "53.3%" }}
+              hasFeedback
+              rules={[{ required: true, message: "请输入密码" }]}
+            >
+              <Input type="password" placeholder="请输入密码" />
+            </Form.Item>
+            <Form.Item style={{ marginLeft: "43%", marginTop: "1rem" }}>
+              <Button type="primary" htmlType="submit">
+                提交
+              </Button>
+            </Form.Item>
+          </Form>
+        </Modal>
         <Footer className="footer">
-          <span> ©2020 chengmy.com.cn 版权所有 浙ICP备20028636号</span>
-          <br />
+          <span> ©2020 chengmy.com.cn 浙ICP备20028636号</span>
+          &nbsp;
           <a
             href="http://www.beian.gov.cn/portal/registerSystemInfo?spm=5176.12901015.7y9jhqsfz.28.55a7525cUJFQgr"
             target="_blank"
@@ -243,10 +320,10 @@ export default function Page() {
               src="//img.alicdn.com/tfs/TB1..50QpXXXXX7XpXXXXXXXXXX-40-40.png"
               alt=""
             />
-            <span>浙公网安备 30159517644991568号</span>
+            <span> 浙公网安备 30159517644991568号</span>
           </a>
         </Footer>
       </Layout>
     </Layout>
   );
-}
+});
