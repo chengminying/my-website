@@ -41,27 +41,31 @@
 .page-content {
   display: flex;
   width: 100%;
-  height: 99%;
+  height: 84.78vh;
   position: relative;
-}
-
-.page-content-left {
-  width:calc(40% - 4px);
-  height:100%;  
   overflow: hidden;
 }
 
+.page-content-left {
+  width:calc(40% - 6px);
+  height:100%;  
+  overflow: hidden;
+  float: left;
+}
+
 .page-content-resize {
-  width:4px;
+  width:6px;
   height:100%;  
   cursor: col-resize;
+  float: left;
 }
 
 .page-content-right {
   width:60%;
   height:100%;  
   overflow: hidden;
-  flex-grow: 1;
+  // flex-grow: 1;
+  float: left;
 }
 .page-content-bottom {
   width: 100%;
