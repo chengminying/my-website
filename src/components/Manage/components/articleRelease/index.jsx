@@ -24,11 +24,14 @@ export default withRouter(function ArticleRelease(props) {
   const [menuList, setMenuList] = useState([]);
   const [formInstance] = Form.useForm();
   const params = useRef(props.location.query);
+  const [pointerEvents, setPointerEvents] = useState("auto");
 
   useEffect(() => {
+
     getMenusList();
 
     resize.current.onmousedown = function (e) {
+      setPointerEvents("none");
       const startX = e.clientX;
       resize.current.left = resize.current.offsetLeft;
       content.current.onmousemove = function (e) {
@@ -41,11 +44,12 @@ export default withRouter(function ArticleRelease(props) {
         resize.current.style.left = moveLen;
         left.current.style.width = moveLen + "px";
         right.current.style.width =
-          content.current.clientWidth - moveLen - 5 + "px";
+        content.current.clientWidth - moveLen - 5 + "px";
       };
       content.current.onmouseup = function (evt) {
         content.current.onmousemove = null;
         content.current.onmouseup = null;
+        setPointerEvents("auto");
         resize.current.releaseCapture && resize.current.releaseCapture();
       };
       resize.current.setCapture && resize.current.setCapture();
@@ -146,7 +150,6 @@ export default withRouter(function ArticleRelease(props) {
       }
     });
   }
-
   return (
     <div ref={(ref) => (content.current = ref)} className="manage-content">
       <div ref={(ref) => (left.current = ref)} className="manage-content-left">
@@ -167,6 +170,7 @@ export default withRouter(function ArticleRelease(props) {
             // indentUnit: 2,// 缩进单位，默认2
             keyMap: "sublime", // 快捷键集合
             styleActiveLine: true, // 激活当前行样式
+            scrollbarStyle: "overlay",
             gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"], // 用来添加额外的gutter
           }}
         />
@@ -186,7 +190,7 @@ export default withRouter(function ArticleRelease(props) {
             width: "100%",
             border: "0px",
             height: "100%",
-            pointerEvents: "none",
+            pointerEvents,
           }}
           // sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
         ></iframe>

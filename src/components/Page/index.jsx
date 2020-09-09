@@ -28,6 +28,7 @@ export default withRouter(function Page(props) {
   const flagKey = useRef(0);
   const [initCode, setInitCode] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
+  const [pointerEvents, setPointerEvents] = useState("auto");
 
   //codemirror
   const content = useRef(null);
@@ -61,6 +62,7 @@ export default withRouter(function Page(props) {
 
     //窗口拖动
     resize.current.onmousedown = function (e) {
+      setPointerEvents("none");
       const startX = e.clientX;
       resize.current.left = resize.current.offsetLeft;
       content.current.onmousemove = function (e) {
@@ -78,6 +80,7 @@ export default withRouter(function Page(props) {
       content.current.onmouseup = function (evt) {
         content.current.onmousemove = null;
         content.current.onmouseup = null;
+        setPointerEvents("auto");
         resize.current.releaseCapture && resize.current.releaseCapture();
       };
       resize.current.setCapture && resize.current.setCapture();
@@ -226,8 +229,8 @@ export default withRouter(function Page(props) {
                     styleActiveLine: true, // 激活当前行样式
                     scrollbarStyle: "overlay",
                     gutters: [
-                      // "CodeMirror-linenumbers",
-                      // "CodeMirror-foldgutter",
+                      "CodeMirror-linenumbers",
+                      "CodeMirror-foldgutter",
                     ], // 用来添加额外的gutter
                   }}
                 />
@@ -247,7 +250,7 @@ export default withRouter(function Page(props) {
                     width: "100%",
                     border: "0px",
                     height: "100%",
-                    pointerEvents: "none",
+                    pointerEvents,
                   }}
                   // sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
                 ></iframe>

@@ -48,7 +48,7 @@ if(global.process.platform === "linux") {
 } else {
   mapPath = "../build";
 }
-app.use(express.static(path.resolve(mapPath)));
+app.use(express.static(path.resolve(mapPath), { maxAge: 3600 * 60 * 60 * 24}));
 
 // app.use(function(req, res, next) {
 //   console.log(req.url)
