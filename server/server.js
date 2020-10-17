@@ -2,17 +2,15 @@ const express = require('express');
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const path = require("path");
-const cors = require("cors")
-
-
-
-// console.log(reqRouter)
+const cors = require("cors");
+const history = require("connect-history-api-fallback");
 
 //express实例
 const app = express();
 
 const server = require('http').Server(app);
 
+app.use(history());
 
 //使用body-parser处理请求
 app.use(bodyParser.json());
@@ -48,14 +46,16 @@ if(global.process.platform === "linux") {
 } else {
   mapPath = "../build";
 }
+
+app.use(function(req, res, next) {
+  if(req.url.startsWith('/static') || req.url.startsWith('/')) { 
+    next();
+  }
+// app.use(express.static(path.resolve(mapPath), { maxAge: 3600 * 60 * 60 * 24}));
+
+});
 app.use(express.static(path.resolve(mapPath), { maxAge: 3600 * 60 * 60 * 24}));
 
-// app.use(function(req, res, next) {
-//   console.log(req.url)
-//   if(req.url.startsWith('/req/') || req.url.startsWith('/static/')) { 
-//     return next();
-//   }
-// });
 
 server.listen(PORT, function() {
   const date = new Date();
