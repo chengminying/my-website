@@ -123,10 +123,10 @@ export default withRouter(
       this._getArticle(article._id);
     };
 
-    OpenChange = (v, a, n) => {
+    OpenChange = (v) => {
       if (v.length) {
         this.setState({
-          openKey: v[0].key
+          openKey: v[1]
         })
       }
     };
