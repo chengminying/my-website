@@ -8,19 +8,25 @@ const online = "https://www.chengmy.com.cn/req/";
 const local = "http://localhost:8088/req/";
 
 const url = window.location.hostname === "localhost" ? local : online;
+// const url = online;
 
 const address = {
+  getHomeShow: url + "getHomeShow",
   getMenus: url + "getMenus",
   postMenus: url + "postMenus",
   updateMenu: url + "updateMenu",
-
   saveArticle: url + "saveArticle",
   getArticleIndex: url + "getArticleIndex",
   getArticle: url + "getArticle",
   updateArticle: url + "updateArticle",
+  updateArticleImage: url + "updateArticleImage",
   deleteArticle: url + "deleteArticle",
 
   login: url + "login",
+}
+
+const getHomeShow = () => {
+  return axios.get(address.getHomeShow);
 }
 
 const getMenus = () => {
@@ -51,6 +57,10 @@ const updateArticle = params => {
   return axios.post(address.updateArticle, params);
 }
 
+const updateArticleImage = params => {
+  return axios.post(address.updateArticleImage, params);
+}
+
 const deleteArticle = params => {
   return axios.get(address.deleteArticle, {params});
 }
@@ -60,6 +70,7 @@ const login = params => {
 }
 
 export {
+  getHomeShow,
   getMenus,
   postMenus,
   updateMenu,
@@ -68,6 +79,7 @@ export {
   getArticleIndex,
   getArticle,
   updateArticle,
+  updateArticleImage,
   deleteArticle,
 
   login

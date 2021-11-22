@@ -41,37 +41,43 @@ export default withRouter(
         pointerEvents: "auto",
         iframeValue: "",
         codeValue: "",
+        showDemoPage: false,
       };
     }
 
     componentDidMount() {
-      console.log(this.props);
+      // console.log(this.props);
       Promise.all([getMenus(), getArticleIndex()]).then((res) => {
+        //传入的菜单和文章
+        const query = this.props.location.query
+          ? this.props.location.query
+          : { path: undefined, title: undefined };
+        const { path, title } = query;
         //菜单目录
         if (!res[0].data.success || !res[1].data.success) return;
-
         //默认展开菜单第一个
         const firstMenu = res[0].data.data;
         //默认选择菜单第一项第一个
-        const firstItem = res[1].data.data
+        const items = res[1].data.data;
+        const firstItem = items
           .filter((v) => v.path === firstMenu[0].path)
           .sort((a, b) => a.order - b.order);
-        console.log(firstMenu);
-        console.log(firstItem);
+        const s_key = title ? title : firstItem[1].title;
         this.setState({
           menusList: firstMenu,
           articleList: res[1].data.data,
-          openKey: firstMenu[0].path,
-          selectKey: firstItem[0].title,
+          openKey: path ? path : firstMenu[0].path,
+          selectKey: s_key,
         });
         //文章
-        this._getArticle(firstItem[0]._id);
+        const obj = items.find((a) => a.title === s_key);
+        this._getArticle(obj ? obj._id : firstItem[1]._id);
         this.run();
       });
 
       this.resize.onmousedown = (e) => {
         this.setState({
-          pointerEvents: "none"
+          pointerEvents: "none",
         });
         const startX = e.clientX;
         this.resize.left = this.resize.offsetLeft;
@@ -91,8 +97,8 @@ export default withRouter(
           this.content.onmousemove = null;
           this.content.onmouseup = null;
           this.setState({
-            pointerEvents: "auto"
-          })
+            pointerEvents: "auto",
+          });
           this.resize.releaseCapture && this.resize.releaseCapture();
         };
         this.resize.setCapture && this.resize.setCapture();
@@ -105,7 +111,7 @@ export default withRouter(
         if (res.data.success) {
           this.setState({
             codeValue: res.data.data.content,
-            initCode: res.data.data.content
+            initCode: res.data.data.content,
           });
           this.run();
         }
@@ -115,7 +121,8 @@ export default withRouter(
     menuClick = ({ keyPath }) => {
       if (keyPath.length < 1) return;
       this.setState({
-        selectKey: keyPath[0]
+        selectKey: keyPath[0],
+        showDemoPage: keyPath[1] === "project" ? true : false
       });
       const article = this.state.articleList
         .filter((v) => v.path === keyPath[1])
@@ -126,31 +133,31 @@ export default withRouter(
     OpenChange = (v) => {
       if (v.length) {
         this.setState({
-          openKey: v[1]
-        })
+          openKey: v[1],
+        });
       }
     };
 
     onCollapse = () => {
       const { collapsed, openKey } = this.state;
-      if (!collapsed) {
-        this.setState({
-          openKey: 0
-        });
-        this.flagKey.current = openKey;
-      } else {
-        this.setOpenKey(this.flagKey);
-        this.flagKey = 0;
-      }
-      this.setState({
-        collapsed: !this.state.collapsed
-      });
+      // if (!collapsed) {
+      //   this.setState({
+      //     openKey: 0
+      //   });
+      //   this.flagKey = openKey;
+      // } else {
+      //   this.setOpenKey(this.flagKey);
+      //   this.flagKey = 0;
+      // }
+      // this.setState({
+      //   collapsed: !this.state.collapsed
+      // });
     };
 
     handleBeforeChange = (editor, data, value) => {
       this.setState({
-        codeValue: value
-      })
+        codeValue: value,
+      });
     };
 
     run = () => {
@@ -159,19 +166,19 @@ export default withRouter(
       const value = editor.getValue();
       this.setState({
         iframeValue: value,
-      })
+      });
     };
 
     reset = () => {
       this.setState({
         codeValue: this.state.initCode,
-        iframeValue: this.state.initCode
-      })
+        iframeValue: this.state.initCode,
+      });
     };
 
     hideModal = () => {
       this.setState({
-        modalVisible: false
+        modalVisible: false,
       });
     };
 
@@ -183,7 +190,7 @@ export default withRouter(
         }
       });
       this.setState({
-        modalVisible: true
+        modalVisible: true,
       });
     };
 
@@ -244,78 +251,82 @@ export default withRouter(
           <Layout>
             <Content>
               <div className="site-layout-background">
-                <div
-                  ref={(ref) => (this.content = ref)}
-                  className="page-content"
-                >
-                  <div
-                    ref={(ref) => (this.left = ref)}
-                    className="page-content-left"
+              <div
+                    ref={(ref) => (this.content = ref)}
+                    className="page-content"
                   >
-                    <CodeMirror
-                      className="codemirror-manage"
-                      value={codeValue}
-                      onBeforeChange={this.handleBeforeChange}
-                      editorDidMount={(editor) =>
-                        (this.editorInstance = editor)
-                      }
-                      options={{
-                        mode: "htmlmixed", //语言模式
-                        theme: "yonce", //主题
-                        lineNumbers: true, // 显示行号
-                        smartIndent: true, // 是否智能缩进
-                        tabSize: 2, // tab缩进空格数
-                        autoCloseTags: true, // 自动关闭标签
-                        autoCloseBrackets: true, // 自动输入括弧
-                        foldGutter: true, // 允许在行号位置折叠
-                        // indentUnit: 2,// 缩进单位，默认2
-                        keyMap: "sublime", // 快捷键集合
-                        styleActiveLine: true, // 激活当前行样式
-                        scrollbarStyle: "overlay",
-                        gutters: [
-                          "CodeMirror-linenumbers",
-                          "CodeMirror-foldgutter",
-                        ], // 用来添加额外的gutter
-                      }}
-                    />
+                    <div
+                      ref={(ref) => (this.left = ref)}
+                      className="page-content-left"
+                      style={this.state.showDemoPage ? {display: "none"} : {display: "flex"}}
+                    >
+                      <CodeMirror
+                        className="codemirror-manage"
+                        value={codeValue}
+                        onBeforeChange={this.handleBeforeChange}
+                        editorDidMount={(editor) =>
+                          (this.editorInstance = editor)
+                        }
+                        options={{
+                          mode: "htmlmixed", //语言模式
+                          theme: "yonce", //主题
+                          lineNumbers: true, // 显示行号
+                          smartIndent: true, // 是否智能缩进
+                          tabSize: 2, // tab缩进空格数
+                          autoCloseTags: true, // 自动关闭标签
+                          autoCloseBrackets: true, // 自动输入括弧
+                          foldGutter: true, // 允许在行号位置折叠
+                          // indentUnit: 2,// 缩进单位，默认2
+                          keyMap: "sublime", // 快捷键集合
+                          styleActiveLine: true, // 激活当前行样式
+                          scrollbarStyle: "overlay",
+                          gutters: [
+                            "CodeMirror-linenumbers",
+                            "CodeMirror-foldgutter",
+                          ], // 用来添加额外的gutter
+                        }}
+                      />
+                    </div>
+                    <div
+                      ref={(ref) => (this.resize = ref)}
+                      className="page-content-resize"
+                    ></div>
+                    <div
+                      ref={(ref) => (this.right = ref)}
+                      className="page-content-right"
+                    >
+                      <iframe
+                        title="three"
+                        srcDoc={iframeValue}
+                        style={{
+                          width: "100%",
+                          border: "0px",
+                          height: "100%",
+                          pointerEvents,
+                        }}
+                        // sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+                      ></iframe>
+                    </div>
+                    <div 
+                      className="page-content-bottom"
+                      style={this.state.showDemoPage ? {display: "none"} : {display: "flex"}}
+                    >
+                      <Space size={100}>
+                        <a href="#!" onClick={this.run}>
+                          <PlayCircleOutlined />
+                          <span>运行</span>
+                        </a>
+                        <a href="#!" onClick={this.reset}>
+                          <RedoOutlined />
+                          <span>重置</span>
+                        </a>
+                        <a href="#!" onClick={this.showModal}>
+                          <LoginOutlined />
+                          <span>登陆</span>
+                        </a>
+                      </Space>
+                    </div>
                   </div>
-                  <div
-                    ref={(ref) => (this.resize = ref)}
-                    className="page-content-resize"
-                  ></div>
-                  <div
-                    ref={(ref) => (this.right = ref)}
-                    className="page-content-right"
-                  >
-                    <iframe
-                      title="three"
-                      srcDoc={iframeValue}
-                      style={{
-                        width: "100%",
-                        border: "0px",
-                        height: "100%",
-                        pointerEvents,
-                      }}
-                      // sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
-                    ></iframe>
-                  </div>
-                  <div className="page-content-bottom">
-                    <Space size={100}>
-                      <a href="javascript:void(0);" onClick={this.run}>
-                        <PlayCircleOutlined />
-                        <span>运行</span>
-                      </a>
-                      <a href="javascript:void(0);" onClick={this.reset}>
-                        <RedoOutlined />
-                        <span>重置</span>
-                      </a>
-                      <a href="javascript:void(0);" onClick={this.showModal}>
-                        <LoginOutlined />
-                        <span>登陆</span>
-                      </a>
-                    </Space>
-                  </div>
-                </div>
               </div>
             </Content>
             <Modal

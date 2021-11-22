@@ -24,8 +24,11 @@ const models = {
   },
   article: {
     id: {type: String, require: true},
+    path: {type: String, require: true},
     title: {type: String, require: true},
     content: {type: String, require: true},
+    imageURL: {type: String, default: ""},
+    showInHome: {type: Boolean, default: false},
   }
 }
 

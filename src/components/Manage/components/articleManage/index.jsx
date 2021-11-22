@@ -8,12 +8,15 @@ import {
   InputNumber,
   Button,
   message,
+  Checkbox
 } from "antd";
 import {
   getMenus,
   getArticleIndex,
   updateArticle,
   deleteArticle,
+  getArticle,
+  updateArticleImage,
 } from "../../../../axios/http";
 import { ExclamationCircleOutlined } from "@ant-design/icons";
 import { withRouter } from "react-router-dom";
@@ -22,6 +25,7 @@ const { confirm } = Modal;
 export default withRouter(function ArticleManage(props) {
   const [tableData, setTableData] = useState([]);
   const [visible, setVisible] = useState(false);
+
   const [formInstance] = Form.useForm();
 
   useEffect(() => {
@@ -60,12 +64,20 @@ export default withRouter(function ArticleManage(props) {
   }
 
   function handleModify(record) {
-    setVisible(() => true);
-    formInstance.setFieldsValue({
-      title: record.title,
-      order: record.order,
-      _id: record._id,
+    getArticle({ _id: record._id, }).then((res) => {
+      if (res.data.success) {
+        setVisible(() => true);
+        formInstance.setFieldsValue({
+          title: record.title,
+          order: record.order,
+          path: record.path,
+          showInHome: res.data.data.showInHome,
+          imageURL: res.data.data.imageURL,
+          _id: record._id,
+        });
+      }
     });
+
   }
 
   function handleRemove(record) {
@@ -86,7 +98,10 @@ export default withRouter(function ArticleManage(props) {
   }
 
   function modifyContent(record) {
-    props.history.push({pathname: "articleRelease", query: {_id: record._id}});
+    props.history.push({
+      pathname: "articleRelease",
+      query: { _id: record._id },
+    });
   }
 
   function onFinish(value) {
@@ -94,13 +109,20 @@ export default withRouter(function ArticleManage(props) {
       _id: value._id,
       title: value.title,
       order: value.order,
+      path: value.path,
+      showInHome: value.showInHome,
+      imageURL: value.imageURL,
     };
 
     updateArticle(params).then((res) => {
       if (res.data.success) {
-        hideModal();
-        getMenusList();
-        message.success(res.data.msg);
+        updateArticleImage(params).then((res) => {
+          if (res.data.success) {
+            hideModal();
+            getMenusList();
+            message.success(res.data.msg);
+          }
+        });
       }
     });
   }
@@ -112,8 +134,14 @@ export default withRouter(function ArticleManage(props) {
       key: "name",
       width: "50%",
       render: (text, record) => {
-        return record.operation ? <a href="#!;" onClick={() => modifyContent(record)}>{text}</a> : text;
-      }
+        return record.operation ? (
+          <a href="#!;" onClick={() => modifyContent(record)}>
+            {text}
+          </a>
+        ) : (
+          text
+        );
+      },
     },
     {
       title: "操作",
@@ -123,7 +151,9 @@ export default withRouter(function ArticleManage(props) {
       render: (text, record) => {
         return record.operation ? (
           <Space size="middle">
-            <a href="#!" onClick={() => handleModify(record)}>修改</a>
+            <a href="#!" onClick={() => handleModify(record)}>
+              修改和配置首页
+            </a>
             <a href="#!" onClick={() => handleRemove(record)}>
               删除
             </a>
@@ -159,6 +189,21 @@ export default withRouter(function ArticleManage(props) {
             <Input placeholder="ID" />
           </Form.Item>
           <Form.Item
+            label="path"
+            name="path"
+            style={{ width: "53%" }}
+            hasFeedback
+            hidden
+            rules={[
+              {
+                required: true,
+                message: "path",
+              },
+            ]}
+          >
+            <Input placeholder="path" />
+          </Form.Item>
+          <Form.Item
             label="文章标题"
             name="title"
             style={{ width: "53%" }}
@@ -188,6 +233,37 @@ export default withRouter(function ArticleManage(props) {
               style={{ width: "100%" }}
               type="number"
               placeholder="输入数字"
+            />
+          </Form.Item>
+          <Form.Item
+            label="首页显示"
+            style={{ width: "53%" }}
+            hasFeedback
+            rules={[
+              {
+                required: false,
+                message: "请选择该文章是否在首页显示",
+              },
+            ]}
+            name="showInHome" valuePropName="checked" 
+          >
+            <Checkbox>开启首页显示</Checkbox>
+          </Form.Item>
+          <Form.Item
+            label="首页图片地址"
+            name="imageURL"
+            style={{ width: "53%" }}
+            hasFeedback
+            rules={[
+              {
+                required: false,
+                message: "请输入首先显示图片地址",
+              },
+            ]}
+          >
+            <Input
+              style={{ width: "100%" }}
+              placeholder="输入图片地址"
             />
           </Form.Item>
           <Form.Item style={{ marginLeft: "43%", marginTop: "1rem" }}>

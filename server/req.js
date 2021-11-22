@@ -7,6 +7,10 @@ const menuModel = model.getModel("menu");
 const articleIndexModel = model.getModel("articleIndex");
 const articleModel = model.getModel("article");
 
+articleIndexModel.findByIdAndDelete("5f527b683c15cbc02dd2971d", function(err, doc) {
+  console.log(doc)
+});
+
 Router.post("/login", function(req, res) {
   const { username, pwd } = req.body;
   const user = "chengmy";
@@ -76,7 +80,7 @@ Router.post("/saveArticle", function (req, res) {
     model.save(function (e, d) {
       if (e)
         return res.json({ success: false, msg: "保存文章目录出错了", err: e });
-      const _model = new articleModel({ content, _id: d._id, title });
+      const _model = new articleModel({ content, _id: d._id, title, path });
       _model.save(function (e, d) {
         if (e)
           return res.json({
@@ -99,6 +103,13 @@ Router.get("/getArticleIndex", function (req, res) {
   articleIndexModel.find({}, function (err, doc) {
     if (!doc) return;
     return res.json({ success: true, msg: "请求文章成功", data: doc });
+  });
+});
+
+Router.get("/getHomeShow", function (req, res) {
+  articleModel.find({ showInHome: true }, function (err, doc) {
+    if (!doc) return res.json({ success: false, msg: "获取首页文章失败" });
+    return res.json({ success: true, msg: "获取首页文章成功", data: doc });
   });
 });
 
@@ -135,6 +146,25 @@ Router.post("/updateArticle", function (req, res) {
       return res.json({ success: false, msg: "修改文章目录失败" });
     });
   }
+});
+
+Router.post("/updateArticleImage", function (req, res) {
+  const { _id, imageURL, showInHome, path } = req.body;
+  if (imageURL || showInHome || path) {
+    articleModel.update({ _id }, { imageURL, showInHome, path }, function (err, doc) {
+      if (!err) {
+        return res.json({
+          success: true,
+          msg: "修改成功",
+          num: doc.nModified,
+        });
+      }
+      return res.json({ success: false, msg: "修改文章首页失败" });
+    });
+  } else {
+    return res.json({ success: false, msg: "首页参数为空" });
+  }
+  
 });
 
 Router.get("/deleteArticle", function(req, res) {
