@@ -199,7 +199,7 @@ export default withRouter(
       login(value).then((res) => {
         if (res.data.success) {
           this.hideModal();
-          this.props.history.push("manage");
+          this.props.history.push({"pathname": "/manage", "query": {uuid: "stemInfospm=5176.12901015.7y9jhqsfz.28.55a7525cUJ"}});
         } else {
           this.hideModal();
         }
