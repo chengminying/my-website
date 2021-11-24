@@ -68,6 +68,7 @@ export default withRouter(
           articleList: res[1].data.data,
           openKey: path ? path : firstMenu[0].path,
           selectKey: s_key,
+          showDemoPage: path === "project" ? true : false
         });
         //文章
         const obj = items.find((a) => a.title === s_key);

@@ -7,8 +7,8 @@ axios.withCredentials = true;
 const online = "https://www.chengmy.com.cn/req/";
 const local = "http://localhost:8088/req/";
 
-const url = window.location.hostname === "localhost" ? local : online;
-// const url = online;
+// const url = window.location.hostname === "localhost" ? local : online;
+const url = online;
 
 const address = {
   getHomeShow: url + "getHomeShow",

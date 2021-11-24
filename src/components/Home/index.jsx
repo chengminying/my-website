@@ -88,8 +88,7 @@ export default withRouter(function Home(props) {
   // }
 
   useEffect(() => {
-    console.log("组件被加载");
-    scene.background = new THREE.Color(0xb9d3ff);
+    scene.background = new THREE.Color(0x000000);
 
     const width = container.current.clientWidth; //窗口宽度
     const height = container.current.clientHeight; //窗口高度
@@ -124,17 +123,15 @@ export default withRouter(function Home(props) {
         immutable.current.itemNum = res.data.data.length;
         helix(res.data.data)
       }
-    })
-
-
+    });
 
     window.addEventListener("resize", onWindowResize, false);
 
     addOrbitCamera();
-    addLights();
-    addGround();
-    addAxes();
-    drawCanvas();
+    // addLights();
+    // addGround();
+    // addAxes();
+    // drawCanvas();
 
     //renderer
     renderAnimation();
@@ -155,16 +152,15 @@ export default withRouter(function Home(props) {
 
   function helix(items) {
     console.log(items);
-    const radius = 200;
-
+    const radius = 400;
 
     const group = new THREE.Group();
     group.name = "图例";
     for (let i = 0; i < items.length; i++) {
       const element = document.createElement("div");
       element.className = "objectCSS-ele";
-      element.style.width = "5rem";
-      element.style.height = "5rem";
+      element.style.width = "10rem";
+      element.style.height = "7rem";
       element.style.backgroundRepeat = "no-repeat";
       element.style.backgroundSize = "100% 100%";
       element.style.backgroundImage = `url(${items[i].imageURL})`;
