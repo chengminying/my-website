@@ -99,8 +99,11 @@ export default withRouter(function ArticleManage(props) {
 
   function modifyContent(record) {
     props.history.push({
-      pathname: "articleRelease",
-      query: { _id: record._id },
+      pathname: "/manage/articleRelease",
+      query: {
+        uuid: "stemInfospm=5176.12901015.7y9jhqsfz.28.55a7525cUJ",
+        _id: record._id
+      },
     });
   }
 
@@ -135,7 +138,7 @@ export default withRouter(function ArticleManage(props) {
       width: "50%",
       render: (text, record) => {
         return record.operation ? (
-          <a href="#!;" onClick={() => modifyContent(record)}>
+          <a href="javascript:void(0);" onClick={() => modifyContent(record)}>
             {text}
           </a>
         ) : (
@@ -151,10 +154,10 @@ export default withRouter(function ArticleManage(props) {
       render: (text, record) => {
         return record.operation ? (
           <Space size="middle">
-            <a href="#!" onClick={() => handleModify(record)}>
+            <a href="javascript:void(0);" onClick={() => handleModify(record)}>
               修改和配置首页
             </a>
-            <a href="#!" onClick={() => handleRemove(record)}>
+            <a href="javascript:void(0);" onClick={() => handleRemove(record)}>
               删除
             </a>
           </Space>

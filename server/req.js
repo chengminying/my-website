@@ -7,10 +7,6 @@ const menuModel = model.getModel("menu");
 const articleIndexModel = model.getModel("articleIndex");
 const articleModel = model.getModel("article");
 
-articleIndexModel.findByIdAndDelete("5f527b683c15cbc02dd2971d", function(err, doc) {
-  console.log(doc)
-});
-
 Router.post("/login", function(req, res) {
   const { username, pwd } = req.body;
   const user = "chengmy";

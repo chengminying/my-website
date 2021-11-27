@@ -8,7 +8,6 @@ import { MenuManage, ArticleManage, ArticleRelease } from "./components/index";
 const { Sider, Content } = Layout;
 
 export default function WrapperManage(props) {
-  console.log(props);
   const query = props.location.query;
   if (!query || props.location.query.uuid !== "stemInfospm=5176.12901015.7y9jhqsfz.28.55a7525cUJ") {
     props.history.goBack();

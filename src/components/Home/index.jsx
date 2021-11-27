@@ -151,9 +151,7 @@ export default withRouter(function Home(props) {
   }, []);
 
   function helix(items) {
-    console.log(items);
     const radius = 400;
-
     const group = new THREE.Group();
     group.name = "图例";
     for (let i = 0; i < items.length; i++) {
@@ -283,7 +281,7 @@ export default withRouter(function Home(props) {
       })
       fbx.position.y = 50;
       immutable.current.roomModel = fbx;
-      console.log(fbx);
+      // console.log(fbx);
       scene.add(fbx);
     })
   }
@@ -380,7 +378,7 @@ export default withRouter(function Home(props) {
 
   function addGround() {
     const geo = new THREE.PlaneBufferGeometry(400, 400);
-    console.log(geo);
+    // console.log(geo);
     const mat = new THREE.MeshStandardMaterial({
       color: 0x09d3ff,
     });

@@ -73,6 +73,8 @@ export default withRouter(function ArticleRelease(props) {
       if (res.data.success) {
         setCodeValue(() => res.data.data.content);
         setIframeValue(() => res.data.data.content);
+      } else {
+        params.current = undefined;
       }
     });
   }

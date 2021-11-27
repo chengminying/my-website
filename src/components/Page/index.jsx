@@ -313,15 +313,15 @@ export default withRouter(
                       style={this.state.showDemoPage ? {display: "none"} : {display: "flex"}}
                     >
                       <Space size={100}>
-                        <a href="#!" onClick={this.run}>
+                        <a href="javascript:void(0);" onClick={this.run}>
                           <PlayCircleOutlined />
                           <span>运行</span>
                         </a>
-                        <a href="#!" onClick={this.reset}>
+                        <a href="javascript:void(0);" onClick={this.reset}>
                           <RedoOutlined />
                           <span>重置</span>
                         </a>
-                        <a href="#!" onClick={this.showModal}>
+                        <a href="javascript:void(0);" onClick={this.showModal}>
                           <LoginOutlined />
                           <span>登陆</span>
                         </a>
