@@ -1,9 +1,10 @@
 import React, { useRef, useEffect, useState } from "react";
 import * as THREE from "three";
-import { PointerLockControls } from "three/examples/jsm/controls/PointerLockControls";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import { CSS3DRenderer, CSS3DSprite, CSS3DObject } from 'three/examples/jsm/renderers/CSS3DRenderer';
-import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
+import {
+  CSS3DRenderer,
+  CSS3DObject,
+} from "three/examples/jsm/renderers/CSS3DRenderer";
 import TWEEN from "@tweenjs/tween.js";
 import "./index.less";
 import { withRouter, Link } from "react-router-dom";
@@ -17,27 +18,28 @@ const URL = "https://chengmy.oss-cn-hangzhou.aliyuncs.com/MyWebsite/";
 const isDevelopment = process.env.NODE_ENV === "development";
 
 export default withRouter(function Home(props) {
-
   const container = useRef(null);
   const managePage = useRef(null);
 
   const immutable = useRef({
     scene: new THREE.Scene(),
     camera: new THREE.PerspectiveCamera(45, 1, 0.1, 10000),
-    // renderer: new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance", }),
-    renderer: new CSS3DRenderer(),
+    renderer: new THREE.WebGLRenderer({
+      antialias: true,
+      powerPreference: "high-performance",
+    }),
+    css3dRenderer: new CSS3DRenderer(),
     loadManager: new THREE.LoadingManager(),
     ori: undefined, //orbitControl 只在本地有效
-    raycaster: new THREE.Raycaster(new THREE.Vector3(), new THREE.Vector3(), 0, 10),
+    raycaster: new THREE.Raycaster(
+      new THREE.Vector3(),
+      new THREE.Vector3(),
+      0,
+      10
+    ),
     selectObjects: [],
-    velocity: new THREE.Vector3(), //delta时间内位移的距离 
+    velocity: new THREE.Vector3(), //delta时间内位移的距离
     direction_v: new THREE.Vector3(), //相机位移方向
-    // direction: { //键盘输入的方向
-    //   forward: false,
-    //   backward: false,
-    //   left: false,
-    //   right: false
-    // },
 
     itemNum: 0, //旋转的个数
     Objects: [],
@@ -47,18 +49,32 @@ export default withRouter(function Home(props) {
 
     roomModel: null,
     clock: new THREE.Clock(), //时钟，取delta 也可以使用performance.now
-    requestAnimationFrame: window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame,
-    cancelAnimationFrame: window.cancelAnimationFrame || window.mozCancelAnimationFrame,
+    requestAnimationFrame:
+      window.requestAnimationFrame ||
+      window.mozRequestAnimationFrame ||
+      window.webkitRequestAnimationFrame ||
+      window.msRequestAnimationFrame,
+    cancelAnimationFrame:
+      window.cancelAnimationFrame || window.mozCancelAnimationFrame,
     animationFrame: undefined,
-    intervals: []
+    intervals: [],
+
+    particlesData:[],
+    positions: undefined,
+    colors: undefined,
+    particles: undefined,
+    pointCloud: undefined,
+    particlePositions: undefined,
+    linesMesh: undefined,
+    maxParticleCount: 1000,
+    particleCount: 500,
+    r: 800,
+    rHalf: 400,
   });
-
-  const [isModalVisible, setIsModalVisible] = useState(true);
-  // const [modelButton, setModelButton] = useState(false);
-
 
   const scene = immutable.current.scene;
   const renderer = immutable.current.renderer;
+  const css3dRenderer = immutable.current.css3dRenderer;
   const camera = immutable.current.camera;
   camera.lookAt(0, 0, 0);
   camera.position.set(0, 0, 1000);
@@ -66,26 +82,18 @@ export default withRouter(function Home(props) {
   const pathname = props.location.pathname;
 
   const requestAnimationFrame = immutable.current.requestAnimationFrame;
-  const cancelAnimationFrame = immutable.current.cancelAnimationFrame;
 
-
-  // const showModal = () => {
-  //   setModelButton(true);
-  // };
-
-  // const hideModal = () => {
-  //   const control = immutable.current.control;
-  //   if(!control) return ;
-  //   control.lock();
-    
-  // }
-
-  // const startRoaming = () => {
-  //   setIsModalVisible(false);
-  //   const control = immutable.current.control;
-  //   if(!control) return ;
-  //   control.lock();
-  // }
+  const particlesData = immutable.current.particlesData;
+  let positions = immutable.current.particlesData
+  let colors = immutable.current.colors;
+  let particles = immutable.current.particles;
+  let pointCloud = immutable.current.pointCloud;
+  let particlePositions = immutable.current.particlePositions;
+  let linesMesh = immutable.current.linesMesh;
+  const maxParticleCount = immutable.current.maxParticleCount;
+  let particleCount = immutable.current.particleCount;
+  const r = immutable.current.r;
+  const rHalf = immutable.current.rHalf;
 
   useEffect(() => {
     scene.background = new THREE.Color(0x000000);
@@ -94,34 +102,26 @@ export default withRouter(function Home(props) {
     const height = container.current.clientHeight; //窗口高度
     const k = width / height; //窗口宽高比
     camera.aspect = k;
-
-    renderer.setSize(width, height); //设置渲染区域尺寸
-    const domElement = renderer.domElement;
-    domElement.style.position = 'absolute';
-    domElement.className = "CSS3DRenderer"
-    domElement.style.top = 0  + "px";
-    domElement.style.left = 0  + "px";
+    css3dRenderer.setSize(width, height); //设置渲染区域尺寸
+    const domElement = css3dRenderer.domElement;
+    domElement.style.position = "absolute";
+    domElement.className = "CSS3DRenderer";
+    domElement.style.top = 0 + "px";
+    domElement.style.left = 0 + "px";
     domElement.style.width = "100%";
     domElement.style.height = "100%";
     container.current.appendChild(domElement); //把渲染器添加到dom中
-    // renderer.extensions.get("WEBGL_lose_context");
 
-    //第三人称漫游相机
-    // const control = immutable.current.control = new PointerLockControls(camera, renderer.domElement);
-
-    // control.addEventListener( 'lock', function () {
-    //   setModelButton(false);
-    // })
-
-    // control.addEventListener( 'unlock', function () {
-    //   showModal();
-    // } );
+    renderer.setSize(width, height); //设置渲染区域尺寸
+    renderer.setPixelRatio(window.devicePixelRatio);
+    container.current.appendChild(renderer.domElement);
+    renderer.extensions.get("WEBGL_lose_context");
 
     //获取所有显示在主页的文章
-    getHomeShow().then(res => {
-      if(res.data.success) {
+    getHomeShow().then((res) => {
+      if (res.data.success) {
         immutable.current.itemNum = res.data.data.length;
-        helix(res.data.data)
+        helix(res.data.data);
       }
     });
 
@@ -131,22 +131,20 @@ export default withRouter(function Home(props) {
     // addLights();
     // addGround();
     // addAxes();
-    // drawCanvas();
+    createParticles();
 
     //renderer
     renderAnimation();
 
     return () => {
       window.removeEventListener("resize", () => {});
-      cancelAnimationFrame(immutable.current.animationFrame);
       scene.dispose();
       stopInterval();
       //清空当前webgl上下文
-      // renderer.context.canvas.addEventListener("webglcontextlost", e => {
-      //   console.log(e, "webgl上下文已卸载");
-      // })
-      // renderer.forceContextLoss();
-      
+      renderer.context.canvas.addEventListener("webglcontextlost", (e) => {
+        console.log(e, "webgl上下文已卸载");
+      });
+      renderer.forceContextLoss();
     };
   }, []);
 
@@ -168,10 +166,12 @@ export default withRouter(function Home(props) {
       element.id = items[i].title;
 
       element.onclick = () => {
-        props.history.push({"pathname": "/page", "query": {path: items[i].path, title: items[i].title}});
+        props.history.push({
+          pathname: "/page",
+          query: { path: items[i].path, title: items[i].title },
+        });
         // this.stopInterval();
-        // this.handleRelative(element.id, 'tab');
-      }
+      };
 
       const theta = (i / items.length) * Math.PI * 2;
       const objectCSS = new CSS3DObject(element);
@@ -181,12 +181,14 @@ export default withRouter(function Home(props) {
 
       objectCSS.position.setFromCylindricalCoords(radius, theta, 0);
 
-      immutable.current.positionArrays.push(new THREE.Vector3().copy(objectCSS.position));
+      immutable.current.positionArrays.push(
+        new THREE.Vector3().copy(objectCSS.position)
+      );
       immutable.current.Objects.push(objectCSS);
 
       group.add(objectCSS);
       // immutable.current.scene.add(objectCSS);
-      
+
       //第一个开始的透明度 为1 其他的 为默认值
       immutable.current.Objects[0].element.style.opacity = 1;
     }
@@ -199,7 +201,6 @@ export default withRouter(function Home(props) {
 
     //循环
     startInterval();
-
   }
 
   function startInterval() {
@@ -208,11 +209,12 @@ export default withRouter(function Home(props) {
     }, 4000);
   }
 
-   function move() {
+  function move() {
     // this.isStart = true;
     animation();
     immutable.current.index++;
-    if(immutable.current.index === immutable.current.itemNum) immutable.current.index = 0;
+    if (immutable.current.index === immutable.current.itemNum)
+      immutable.current.index = 0;
   }
 
   function stopInterval() {
@@ -224,34 +226,45 @@ export default withRouter(function Home(props) {
     const duration = 2000;
     const scale = 1.2;
     const opacity = 0.5;
-    let s = {}, t = {};
+    let s = {},
+      t = {};
     for (let i = 0; i < immutable.current.itemNum; i++) {
-
       s["sx" + i] = immutable.current.positionArrays[i].x;
-      s["sy" + i] = immutable.current.positionArrays[i].y; 
+      s["sy" + i] = immutable.current.positionArrays[i].y;
       s["sz" + i] = immutable.current.positionArrays[i].z;
 
       const n = i + 1 > immutable.current.itemNum - 1 ? 0 : i + 1;
       t["sx" + i] = immutable.current.positionArrays[n].x;
-      t["sy" + i] = immutable.current.positionArrays[n].y; 
+      t["sy" + i] = immutable.current.positionArrays[n].y;
       t["sz" + i] = immutable.current.positionArrays[n].z;
-
     }
 
     new TWEEN.Tween({ ...s, scale: 1, opacity })
       .to({ ...t, scale, opacity: 1 }, duration)
       .onUpdate((pos) => {
         for (let i = 0; i < immutable.current.itemNum; i++) {
-          immutable.current.Objects[i].position.set(pos["sx" + i], pos["sy" + i], pos["sz" + i]);
-          if(i === immutable.current.itemNum - 1) {
-            immutable.current.Objects[i].scale.set(pos.scale, pos.scale, pos.scale);
+          immutable.current.Objects[i].position.set(
+            pos["sx" + i],
+            pos["sy" + i],
+            pos["sz" + i]
+          );
+          if (i === immutable.current.itemNum - 1) {
+            immutable.current.Objects[i].scale.set(
+              pos.scale,
+              pos.scale,
+              pos.scale
+            );
             immutable.current.Objects[i].element.style.opacity = pos.opacity;
           }
-          if(i === 0) {
-            immutable.current.Objects[i].scale.set(scale + 1 - pos.scale, scale + 1 - pos.scale, scale + 1 - pos.scale);
+          if (i === 0) {
+            immutable.current.Objects[i].scale.set(
+              scale + 1 - pos.scale,
+              scale + 1 - pos.scale,
+              scale + 1 - pos.scale
+            );
 
-            immutable.current.Objects[i].element.style.opacity = 1 - pos.opacity + opacity;
-
+            immutable.current.Objects[i].element.style.opacity =
+              1 - pos.opacity + opacity;
           }
         }
       })
@@ -262,109 +275,194 @@ export default withRouter(function Home(props) {
       .start();
   }
 
+  function createParticles() {
+    // controls.minDistance = 1000;
+    // controls.maxDistance = 3000;
 
-  function addOrbitCamera () {
-    const ori = immutable.current.ori = new OrbitControls(camera, renderer.domElement);
-    ori.update();
-  }
-  
-  function loadRoom() {
-    const fbxLoader = new FBXLoader(immutable.current.loadManager).setPath(URL);
-    fbxLoader.load("CMYRoom.fbx", fbx => {
-      fbx.scale.multiplyScalar(0.5);
-      fbx.traverse(v => {
-        if(!v.isMesh) return;
-        v.material = new THREE.MeshPhysicalMaterial({
-          side: THREE.DoubleSide,
-          color: 0xffffff,
-        })
-      })
-      fbx.position.y = 50;
-      immutable.current.roomModel = fbx;
-      // console.log(fbx);
-      scene.add(fbx);
-    })
-  }
+    let group = new THREE.Group();
+    scene.add(group);
 
-  // function keyboardEvents () {
-  //   const direction = immutable.current.direction;
-    
-  //   const onKeyDown = function ( event ) {
-  //     const control = immutable.current.control;
-  //     if(!control.isLocked) return;
-  //     switch ( event.keyCode ) {
-  //       case 38: // up
-  //       case 87: // w
-  //         direction.forward = true;
-  //         break;
-  //       case 37: // left
-  //       case 65: // a
-  //         direction.left = true;
-  //         break;
-  //       case 40: // down
-  //       case 83: // s
-  //         direction.backward = true;
-  //         break;
-  //       case 39: // right
-  //       case 68: // d
-  //         direction.right = true;
-  //         break;
-  //       default: 
-  //       break;
-  //     }
-  //   };
+    const helper = new THREE.BoxHelper(
+      new THREE.Mesh(new THREE.BoxGeometry(r, r, r))
+    );
+    helper.material.color.setHex(0x101010);
+    helper.material.blending = THREE.AdditiveBlending;
+    helper.material.transparent = true;
+    group.add(helper);
 
-  //   const onKeyUp = function ( event ) {
-  //     const control = immutable.current.control;
-  //     if(!control.isLocked) return;
-  //     switch ( event.keyCode ) {
-  //       case 38: // up
-  //       case 87: // w
-  //         direction.forward = false;
-  //         break;
-  //       case 37: // left
-  //       case 65: // a
-  //         direction.left = false;
-  //         break;
-  //       case 40: // down
-  //       case 83: // s
-  //         direction.backward = false;
-  //         break;
-  //       case 39: // right
-  //       case 68: // d
-  //         direction.right = false;
-  //         break;
-  //       default: break;
-  //     }
-  //   };
+    const segments = maxParticleCount * maxParticleCount;
 
-  //   document.addEventListener( 'keydown', onKeyDown, false );
-  //   document.addEventListener( 'keyup', onKeyUp, false );
-  // }
+    positions = new Float32Array(segments * 3);
+    colors = new Float32Array(segments * 3);
 
-  function drawCanvas() {
-    const canvas = document.createElement("canvas");
-    canvas.setAttribute("width", 512);
-    canvas.setAttribute("height", 256);
-    canvas.style.position = "absolute";
-
-    const str = "双击击跳转文章";
-    const ctx = canvas.getContext("2d");
-    ctx.font = "Bold 45px Arial";
-    ctx.textAlign = "center";
-    ctx.fillStyle = "#ff0000";
-    ctx.fillText(str, 256, 128);
-
-    const planeGeometry = new THREE.PlaneBufferGeometry(10, 10);
-    const planeMaterial = new THREE.MeshLambertMaterial({
-      side: THREE.DoubleSide,
-      map: new THREE.CanvasTexture(canvas),
+    const pMaterial = new THREE.PointsMaterial({
+      color: 0xffffff,
+      size: 3,
+      blending: THREE.AdditiveBlending,
+      transparent: true,
+      sizeAttenuation: false,
     });
 
-    const planeMesh = new THREE.Mesh(planeGeometry, planeMaterial);
-    planeMesh.position.y = 5;
-    planeMesh.name = "跳转";
-    scene.add(planeMesh);
+    particles = new THREE.BufferGeometry();
+    particlePositions = new Float32Array(maxParticleCount * 3);
+
+    for (let i = 0; i < maxParticleCount; i++) {
+      const x = Math.random() * r - r / 2;
+      const y = Math.random() * r - r / 2;
+      const z = Math.random() * r - r / 2;
+
+      particlePositions[i * 3] = x;
+      particlePositions[i * 3 + 1] = y;
+      particlePositions[i * 3 + 2] = z;
+
+      // add it to the geometry
+      particlesData.push({
+        velocity: new THREE.Vector3(
+          -1 + Math.random() * 2,
+          -1 + Math.random() * 2,
+          -1 + Math.random() * 2
+        ),
+        numConnections: 0,
+      });
+    }
+
+    particles.setDrawRange(0, particleCount);
+    particles.setAttribute(
+      "position",
+      new THREE.BufferAttribute(particlePositions, 3).setUsage(
+        THREE.DynamicDrawUsage
+      )
+    );
+
+    // create the particle system
+    pointCloud = new THREE.Points(particles, pMaterial);
+    group.add(pointCloud);
+
+    const geometry = new THREE.BufferGeometry();
+
+    geometry.setAttribute(
+      "position",
+      new THREE.BufferAttribute(positions, 3).setUsage(THREE.DynamicDrawUsage)
+    );
+    geometry.setAttribute(
+      "color",
+      new THREE.BufferAttribute(colors, 3).setUsage(THREE.DynamicDrawUsage)
+    );
+
+    geometry.computeBoundingSphere();
+
+    geometry.setDrawRange(0, 0);
+
+    const material = new THREE.LineBasicMaterial({
+      vertexColors: true,
+      blending: THREE.AdditiveBlending,
+      transparent: true,
+    });
+
+    linesMesh = new THREE.LineSegments(geometry, material);
+    group.add(linesMesh);
+  }
+
+  function particlesAnimation() {
+    let vertexpos = 0;
+    let colorpos = 0;
+    let numConnected = 0;
+
+    const effectController = {
+      showDots: true,
+      showLines: true,
+      minDistance: 100,
+      limitConnections: false,
+      maxConnections: 10,
+      particleCount: 500
+    };
+
+    for (let i = 0; i < particleCount; i++) particlesData[i].numConnections = 0;
+
+    for (let i = 0; i < particleCount; i++) {
+      // get the particle
+      const particleData = particlesData[i];
+
+      particlePositions[i * 3] += particleData.velocity.x;
+      particlePositions[i * 3 + 1] += particleData.velocity.y;
+      particlePositions[i * 3 + 2] += particleData.velocity.z;
+
+      if (
+        particlePositions[i * 3 + 1] < -rHalf ||
+        particlePositions[i * 3 + 1] > rHalf
+      )
+        particleData.velocity.y = -particleData.velocity.y;
+
+      if (particlePositions[i * 3] < -rHalf || particlePositions[i * 3] > rHalf)
+        particleData.velocity.x = -particleData.velocity.x;
+
+      if (
+        particlePositions[i * 3 + 2] < -rHalf ||
+        particlePositions[i * 3 + 2] > rHalf
+      )
+        particleData.velocity.z = -particleData.velocity.z;
+
+      if (
+        effectController.limitConnections &&
+        particleData.numConnections >= effectController.maxConnections
+      )
+        continue;
+
+      // Check collision
+      for (let j = i + 1; j < particleCount; j++) {
+        const particleDataB = particlesData[j];
+        if (
+          effectController.limitConnections &&
+          particleDataB.numConnections >= effectController.maxConnections
+        )
+          continue;
+
+        const dx = particlePositions[i * 3] - particlePositions[j * 3];
+        const dy = particlePositions[i * 3 + 1] - particlePositions[j * 3 + 1];
+        const dz = particlePositions[i * 3 + 2] - particlePositions[j * 3 + 2];
+        const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+        if (dist < effectController.minDistance) {
+          particleData.numConnections++;
+          particleDataB.numConnections++;
+
+          const alpha = 1.0 - dist / effectController.minDistance;
+
+          positions[vertexpos++] = particlePositions[i * 3];
+          positions[vertexpos++] = particlePositions[i * 3 + 1];
+          positions[vertexpos++] = particlePositions[i * 3 + 2];
+
+          positions[vertexpos++] = particlePositions[j * 3];
+          positions[vertexpos++] = particlePositions[j * 3 + 1];
+          positions[vertexpos++] = particlePositions[j * 3 + 2];
+
+          colors[colorpos++] = alpha;
+          colors[colorpos++] = alpha;
+          colors[colorpos++] = alpha;
+
+          colors[colorpos++] = alpha;
+          colors[colorpos++] = alpha;
+          colors[colorpos++] = alpha;
+
+          numConnected++;
+        }
+      }
+    }
+
+    linesMesh.geometry.setDrawRange(0, numConnected * 2);
+    linesMesh.geometry.attributes.position.needsUpdate = true;
+    linesMesh.geometry.attributes.color.needsUpdate = true;
+
+    pointCloud.geometry.attributes.position.needsUpdate = true;
+  }
+
+  function addOrbitCamera() {
+    const ori = (immutable.current.ori = new OrbitControls(
+      camera,
+      // renderer.domElement
+      css3dRenderer.domElement
+    ));
+    // ori.update();
   }
 
   function addLights() {
@@ -394,63 +492,17 @@ export default withRouter(function Home(props) {
 
   function onWindowResize() {
     immutable.current.renderer.setSize(window.innerWidth, window.innerHeight);
+    immutable.current.css3dRenderer.setSize(
+      window.innerWidth,
+      window.innerHeight
+    );
   }
-
-  // function moveCamera() {
-
-  //   const direction = new THREE.Vector3();
-  //   // const velocity = immutable.current.velocity;
-  //   const velocity = new THREE.Vector3();
-  //   const delta = immutable.current.clock.getDelta();
-  //   // console.log(immutable.current.direction);
-  //   const { forward, backward, left, right } = immutable.current.direction;
-  //   // console.log(forward, backward, left, right);
-  //   if(!forward && !backward && !left && !right) return;
-  //   velocity.x = velocity.x * delta;                       
-  //   velocity.z = velocity.z * delta;
-  //   direction.x = Number(right) - Number(left);
-  //   direction.z = Number(forward) - Number(backward);
-
-  //   console.log(camera);
-  //   //检测碰撞
-  //   const model = immutable.current.roomModel;
-  //   const control = immutable.current.control;
-  //   const raycaster = immutable.current.raycaster;
-  //   let intersectObjects = [];
-  //   let intersectObjects_long = [];
-  //   raycaster.ray.origin.copy(immutable.current.camera.position); //位置
-  //   raycaster.ray.direction = new THREE.Vector3(direction.x, 0, direction.z).applyMatrix4(immutable.current.camera.matrix); //方向
-  //   // raycaster.ray.direction.y = 0;
-  //   //新创建一个射线，防止一条射线 检测碰撞时 遇到卡死问题
-  //   const ray_long = new THREE.Raycaster(raycaster.ray.origin, raycaster.ray.direction, 0, 12);
-    
-  //   if(model) intersectObjects = raycaster.intersectObject(model, true);
-  //   if(model) intersectObjects_long = ray_long.intersectObject(model, true);
-
-  //   console.log(raycaster.ray.direction);
-  //   // console.log(intersectObjects);
-  //   // console.log(intersectObjects_long, "----long----");
-  //   if(intersectObjects.length === 0 && intersectObjects_long.length > 0) {
-  //     // console.log(raycaster.ray.direction, "direction");
-  //     // console.log(intersectObjects.length);
-  //     //射线碰到第一个物体的距离
-  //     // console.log(intersectObjects[0]);
-  //     return ;
-  //   } ;
-
-   
-
-  //   if(forward || backward) velocity.z = direction.z * 40 * delta;
-  //   if(left || right) velocity.x = direction.x * 40 * delta;
-
-  //   // console.log(velocity.x);
-  //   control.moveRight(velocity.x);
-  //   control.moveForward(velocity.z);
-  // }
 
   function renderAnimation() {
     TWEEN.update();
     renderer.render(scene, camera);
+    css3dRenderer.render(scene, camera);
+    particlesAnimation();
     immutable.current.animationFrame = requestAnimationFrame(renderAnimation);
   }
 
@@ -458,11 +510,11 @@ export default withRouter(function Home(props) {
     let selectObjects = immutable.current.selectObjects;
     selectObjects = intersect(e);
     if (selectObjects[0] && selectObjects[0].object.name === "跳转") {
-      props.history.push({"pathname": "/page", "query": {path: "math", title: "perlin噪声"}});
+      props.history.push({
+        pathname: "/page",
+        query: { path: "math", title: "perlin噪声" },
+      });
     }
-    // console.log(selectObjects);
-
-
   }
 
   function intersect(e) {
@@ -499,36 +551,6 @@ export default withRouter(function Home(props) {
       onDoubleClick={handleDoubleClick}
       onTouchStart={touchStart}
     >
-      {/* <video muted autoPlay src="" /> */}
-      {/* <Modal
-        visible={isModalVisible}
-        footer={null}
-        closable={false}
-        maskClosable={false}
-        centered={true}
-        keyboard={false}
-        width="22rem"
-        bodyStyle={{display: "flex", flexDirection: "column"}}
-      >
-        <p style={{textAlign: "center"}}>点击开始漫游，按ESC退出漫游</p>
-        <img style={{width: "20rem", height: "10rem"}} src="http://chengmy.oss-cn-hangzhou.aliyuncs.com/MyWebsite/wasd.png" alt=""/>
-        <p>使用WASD或者上⬆下⬇左⬅右➡来控制移动方向</p>
-        <p>使用鼠标控制镜头朝向</p>
-        <p>需要点击时，退出漫游点击即可</p>
-        <Button onClick={startRoaming}>开始漫游</Button>
-      </Modal> */}
-      {/* <Modal
-        visible={modelButton}
-        footer={null}
-        closable={false}
-        maskClosable={false}
-        keyboard={false}
-        width={0}
-        mask={false}
-        style={{marginTop: '-5rem', marginLeft: "1rem"}}
-      >
-        <Button onClick={hideModal}>开始漫游</Button>
-      </Modal> */}
       {pathname === queryParam ? (
         <Button
           type="primary"
