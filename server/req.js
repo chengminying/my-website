@@ -105,12 +105,11 @@ Router.get("/getArticleIndex", function (req, res) {
 });
 
 Router.get("/getHomeShow", function (req, res) {
-  console.log(getClientIp(req))
   const ip = getClientIp(req);
-  if(ip !== "::1") {
-    const _model = new remoteAddressModel({ ip });
+  // if(ip !== "::1") {
+    const _model = new remoteAddressModel({ ip, create_time: new Date() });
     _model.save(function (e, d) {})
-  }
+  // }
   articleModel.find({ showInHome: true }, function (err, doc) {
     if (!doc) return res.json({ success: false, msg: "获取首页文章失败" });
     return res.json({ success: true, msg: "获取首页文章成功", data: doc });
@@ -119,6 +118,11 @@ Router.get("/getHomeShow", function (req, res) {
 
 
 function getClientIp(req) {
+  // console.log("headers = " + JSON.stringify(req.headers));// 包含了各种header，包括x-forwarded-for(如果被代理过的话)
+  // console.log("x-forwarded-for = " + req.header('x-forwarded-for'));// 各阶段ip的CSV, 最左侧的是原始ip
+  // console.log("ips = " + JSON.stringify(req.ips));// 相当于(req.header('x-forwarded-for') || '').split(',')
+  // console.log("remoteAddress = " + req.connection.remoteAddress);// 未发生代理时，请求的ip
+  // console.log("ip = " + req.ip);// 同req.connection.remoteAddress, 但是格式要好一些
   return req.headers['x-forwarded-for'] ||
       req.connection.remoteAddress ||
       req.socket.remoteAddress ||
