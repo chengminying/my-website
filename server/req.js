@@ -6,6 +6,8 @@ const model = require("./model");
 const menuModel = model.getModel("menu");
 const articleIndexModel = model.getModel("articleIndex");
 const articleModel = model.getModel("article");
+const remoteAddressModel = model.getModel("remoteAddress");
+
 
 Router.post("/login", function(req, res) {
   const { username, pwd } = req.body;
@@ -103,11 +105,25 @@ Router.get("/getArticleIndex", function (req, res) {
 });
 
 Router.get("/getHomeShow", function (req, res) {
+  console.log(getClientIp(req))
+  const ip = getClientIp(req);
+  if(ip !== "::1") {
+    const _model = new remoteAddressModel({ ip });
+    _model.save(function (e, d) {})
+  }
   articleModel.find({ showInHome: true }, function (err, doc) {
     if (!doc) return res.json({ success: false, msg: "获取首页文章失败" });
     return res.json({ success: true, msg: "获取首页文章成功", data: doc });
   });
 });
+
+
+function getClientIp(req) {
+  return req.headers['x-forwarded-for'] ||
+      req.connection.remoteAddress ||
+      req.socket.remoteAddress ||
+      req.connection.socket.remoteAddress || '';
+};
 
 Router.get("/getArticle", function (req, res) {
   const { _id } = req.query;

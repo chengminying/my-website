@@ -29,6 +29,11 @@ const models = {
     content: {type: String, require: true},
     imageURL: {type: String, default: ""},
     showInHome: {type: Boolean, default: false},
+  },
+  remoteAddress: {
+    id: {type: String, require: true},
+    ip: {type: String, require: true},
+    create_time: {type: String, default: new Date()},
   }
 }
 

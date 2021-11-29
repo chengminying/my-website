@@ -4,7 +4,6 @@ import {
   PlayCircleOutlined,
   RedoOutlined,
   LoginOutlined,
-  ShrinkOutlined,
 } from "@ant-design/icons";
 import "./index.less";
 import { Controlled as CodeMirror } from "react-codemirror2";
@@ -184,12 +183,12 @@ export default withRouter(
     };
 
     showModal = () => {
-      login().then((res) => {
-        if (res.data.success) {
-          this.hideModal();
-          this.props.history.push("manage");
-        }
-      });
+      // login().then((res) => {
+      //   if (res.data.success) {
+      //     this.hideModal();
+      //     this.props.history.push("manage");
+      //   }
+      // });
       this.setState({
         modalVisible: true,
       });
@@ -313,18 +312,18 @@ export default withRouter(
                       style={this.state.showDemoPage ? {display: "none"} : {display: "flex"}}
                     >
                       <Space size={100}>
-                        <a href="javascript:void(0);" onClick={this.run}>
+                        <Button onClick={this.run}>
                           <PlayCircleOutlined />
                           <span>运行</span>
-                        </a>
-                        <a href="javascript:void(0);" onClick={this.reset}>
+                        </Button>
+                        <Button onClick={this.reset}>
                           <RedoOutlined />
                           <span>重置</span>
-                        </a>
-                        <a href="javascript:void(0);" onClick={this.showModal}>
+                        </Button>
+                        <Button onClick={this.showModal}>
                           <LoginOutlined />
                           <span>登陆</span>
-                        </a>
+                        </Button>
                       </Space>
                     </div>
                   </div>
