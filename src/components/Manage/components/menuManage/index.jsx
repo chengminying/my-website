@@ -33,8 +33,8 @@ export default function Menu() {
       render: (text, record) => {
         return (
           <Space size="middle">
-            <a href="#!;" onClick={() => handleClick(record)}>修改</a>
-            <a href="#!;" onClick={addMenu}>新增</a>
+            <a href="javascript:void(0);" onClick={() => handleClick(record)}>修改</a>
+            <a href="javascript:void(0);" onClick={addMenu}>新增</a>
             {/* <a href="#!;">删除</a> */}
           </Space>
         );

@@ -34,6 +34,9 @@ const models = {
     id: {type: String, require: true},
     ip: {type: String, require: true},
     create_time: {type: String, default: new Date()},
+    OSName: {type: String },
+    OSVersion: {type: String },
+    exploreName: {type: String },
   }
 }
 

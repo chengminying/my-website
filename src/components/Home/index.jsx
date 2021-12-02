@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import {
@@ -59,7 +59,7 @@ export default withRouter(function Home(props) {
     animationFrame: undefined,
     intervals: [],
 
-    particlesData:[],
+    particlesData: [],
     positions: undefined,
     colors: undefined,
     particles: undefined,
@@ -84,7 +84,7 @@ export default withRouter(function Home(props) {
   const requestAnimationFrame = immutable.current.requestAnimationFrame;
 
   const particlesData = immutable.current.particlesData;
-  let positions = immutable.current.particlesData
+  let positions = immutable.current.particlesData;
   let colors = immutable.current.colors;
   let particles = immutable.current.particles;
   let pointCloud = immutable.current.pointCloud;
@@ -118,7 +118,14 @@ export default withRouter(function Home(props) {
     renderer.extensions.get("WEBGL_lose_context");
 
     //获取所有显示在主页的文章
-    getHomeShow().then((res) => {
+    const exploreName = getExplore();
+    const OSInfo = getOsInfo();
+    const params = {
+      exploreName,
+      OSName: OSInfo.name,
+      OSVersion: OSInfo.version
+    };
+    getHomeShow(params).then((res) => {
       if (res.data.success) {
         immutable.current.itemNum = res.data.data.length;
         helix(res.data.data);
@@ -374,7 +381,7 @@ export default withRouter(function Home(props) {
       minDistance: 100,
       limitConnections: false,
       maxConnections: 10,
-      particleCount: 500
+      particleCount: 500,
     };
 
     for (let i = 0; i < particleCount; i++) particlesData[i].numConnections = 0;
@@ -542,6 +549,96 @@ export default withRouter(function Home(props) {
       title: "暂不支持移动端",
       content: "请使用电脑端访问",
     });
+  }
+
+  // 获取操作系统信息
+  function getOsInfo() {
+    var userAgent = navigator.userAgent.toLowerCase();
+    var name = "Unknown";
+    var version = "Unknown";
+    if (userAgent.indexOf("win") > -1) {
+      name = "Windows";
+      if (userAgent.indexOf("windows nt 5.0") > -1) {
+        version = "Windows 2000";
+      } else if (
+        userAgent.indexOf("windows nt 5.1") > -1 ||
+        userAgent.indexOf("windows nt 5.2") > -1
+      ) {
+        version = "Windows XP";
+      } else if (userAgent.indexOf("windows nt 6.0") > -1) {
+        version = "Windows Vista";
+      } else if (
+        userAgent.indexOf("windows nt 6.1") > -1 ||
+        userAgent.indexOf("windows 7") > -1
+      ) {
+        version = "Windows 7";
+      } else if (
+        userAgent.indexOf("windows nt 6.2") > -1 ||
+        userAgent.indexOf("windows 8") > -1
+      ) {
+        version = "Windows 8";
+      } else if (userAgent.indexOf("windows nt 6.3") > -1) {
+        version = "Windows 8.1";
+      } else if (
+        userAgent.indexOf("windows nt 6.2") > -1 ||
+        userAgent.indexOf("windows nt 10.0") > -1
+      ) {
+        version = "Windows 10";
+      } else {
+        version = "Unknown";
+      }
+    } else if (userAgent.indexOf("iphone") > -1) {
+      name = "Iphone";
+    } else if (userAgent.indexOf("mac") > -1) {
+      name = "Mac";
+    } else if (
+      userAgent.indexOf("x11") > -1 ||
+      userAgent.indexOf("unix") > -1 ||
+      userAgent.indexOf("sunname") > -1 ||
+      userAgent.indexOf("bsd") > -1
+    ) {
+      name = "Unix";
+    } else if (userAgent.indexOf("linux") > -1) {
+      if (userAgent.indexOf("android") > -1) {
+        name = "Android";
+      } else {
+        name = "Linux";
+      }
+    } else {
+      name = "Unknown";
+    }
+    return { name, version };
+  }
+
+  function getExplore() {
+    var Sys = {};
+    var ua = navigator.userAgent.toLowerCase();
+    var s;
+    // eslint-disable-next-line no-unused-expressions
+    (s = ua.match(/rv:([\d.]+)\) like gecko/))
+      ? (Sys.ie = s[1])
+      : (s = ua.match(/msie ([\d\.]+)/))
+      ? (Sys.ie = s[1])
+      : (s = ua.match(/edge\/([\d\.]+)/))
+      ? (Sys.edge = s[1])
+      : (s = ua.match(/firefox\/([\d\.]+)/))
+      ? (Sys.firefox = s[1])
+      : (s = ua.match(/(?:opera|opr).([\d\.]+)/))
+      ? (Sys.opera = s[1])
+      : (s = ua.match(/chrome\/([\d\.]+)/))
+      ? (Sys.chrome = s[1])
+      : (s = ua.match(/version\/([\d\.]+).*safari/))
+      ? (Sys.safari = s[1])
+      : 0;
+
+    // 根据关系进行判断
+    if (Sys.ie) return "IE: " + Sys.ie;
+    if (Sys.edge) return "EDGE: " + Sys.edge;
+    if (Sys.firefox) return "Firefox: " + Sys.firefox;
+    if (Sys.chrome) return "Chrome: " + Sys.chrome;
+    if (Sys.opera) return "Opera: " + Sys.opera;
+    if (Sys.safari) return "Safari: " + Sys.safari;
+    return "Unkonwn";
   }
 
   return (

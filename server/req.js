@@ -105,11 +105,12 @@ Router.get("/getArticleIndex", function (req, res) {
 });
 
 Router.get("/getHomeShow", function (req, res) {
+  const { OSName, OSVersion, exploreName } = req.query;
   const ip = getClientIp(req);
-  // if(ip !== "::1") {
-    const _model = new remoteAddressModel({ ip, create_time: new Date() });
+  if(ip !== "::1") {
+    const _model = new remoteAddressModel({ ip, create_time: new Date(), OSName, OSVersion, exploreName });
     _model.save(function (e, d) {})
-  // }
+  }
   articleModel.find({ showInHome: true }, function (err, doc) {
     if (!doc) return res.json({ success: false, msg: "获取首页文章失败" });
     return res.json({ success: true, msg: "获取首页文章成功", data: doc });

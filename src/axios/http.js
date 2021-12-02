@@ -25,8 +25,8 @@ const address = {
   login: url + "login",
 }
 
-const getHomeShow = () => {
-  return axios.get(address.getHomeShow);
+const getHomeShow = params => {
+  return axios.get(address.getHomeShow, {params});
 }
 
 const getMenus = () => {
