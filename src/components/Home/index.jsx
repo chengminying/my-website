@@ -11,8 +11,6 @@ import { withRouter, Link } from "react-router-dom";
 import { Modal, Button } from "antd";
 import { getHomeShow } from "../../axios/http";
 
-import "bootstrap/dist/js/"
-
 const queryParam = "/cheng76735206";
 
 const URL = "https://chengmy.oss-cn-hangzhou.aliyuncs.com/MyWebsite/";
