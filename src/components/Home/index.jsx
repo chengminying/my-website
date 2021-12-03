@@ -11,6 +11,8 @@ import { withRouter, Link } from "react-router-dom";
 import { Modal, Button } from "antd";
 import { getHomeShow } from "../../axios/http";
 
+import "bootstrap/dist/js/"
+
 const queryParam = "/cheng76735206";
 
 const URL = "https://chengmy.oss-cn-hangzhou.aliyuncs.com/MyWebsite/";
@@ -289,13 +291,13 @@ export default withRouter(function Home(props) {
     let group = new THREE.Group();
     scene.add(group);
 
-    const helper = new THREE.BoxHelper(
-      new THREE.Mesh(new THREE.BoxGeometry(r, r, r))
-    );
-    helper.material.color.setHex(0x101010);
-    helper.material.blending = THREE.AdditiveBlending;
-    helper.material.transparent = true;
-    group.add(helper);
+    // const helper = new THREE.BoxHelper(
+    //   new THREE.Mesh(new THREE.BoxGeometry(r, r, r))
+    // );
+    // helper.material.color.setHex(0x101010);
+    // helper.material.blending = THREE.AdditiveBlending;
+    // helper.material.transparent = true;
+    // group.add(helper);
 
     const segments = maxParticleCount * maxParticleCount;
 
