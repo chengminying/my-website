@@ -514,13 +514,13 @@ export default withRouter(function Home(props) {
       varying vec3 v_world_position;
 
       float circle(vec3 pixel, vec3 center, float radius) {
-        return 1.0 - smoothstep(radius - 20.0, radius + 20.0, length(pixel -  center));
+        return 1.0 - smoothstep(radius - 5.0, radius + 5.0, length(pixel -  center));
       }
 
       void main() {
         vec3 pixel_color = texture2D(u_texture, v_uv).rgb;
 
-        float circle_radius = 30.0;
+        float circle_radius = 10.0;
         vec3 circle_color = vec3(0.5, 0.5, 0.8) + vec3( 0.3 * cos(u_time), 0.3 * sin(1.3 * u_time), 0.2 * cos(2.7 * u_time));
         float mix_factor = 0.8 * circle(v_world_position, u_position, circle_radius);
         pixel_color = mix(pixel_color, circle_color, mix_factor);
@@ -549,7 +549,7 @@ export default withRouter(function Home(props) {
     const uniforms = {
       u_time: { value: 0.0 },
       u_resolution: { value: new THREE.Vector2() },
-      u_position: { value: new THREE.Vector3() },
+      u_position: { value: new THREE.Vector3(10000, 10000, 10000) },
       u_texture: { value: null },
       u_matrix: { value: immutable.current.camera.matrixWorld }
     };
