@@ -21,6 +21,7 @@ export default withRouter(function Home(props) {
   const container = useRef(null);
   const managePage = useRef(null);
 
+
   const immutable = useRef({
     scene: new THREE.Scene(),
     camera: new THREE.PerspectiveCamera(45, 1, 0.1, 10000),
@@ -58,7 +59,6 @@ export default withRouter(function Home(props) {
       window.cancelAnimationFrame || window.mozCancelAnimationFrame,
     animationFrame: undefined,
     intervals: [],
-
     particlesData: [],
     positions: undefined,
     colors: undefined,
@@ -70,6 +70,11 @@ export default withRouter(function Home(props) {
     particleCount: 500,
     r: 800,
     rHalf: 400,
+    renderTarget1: null,
+    renderTarget2: null,
+    sceneShader: new THREE.Scene(),
+    sceneScreen: new THREE.Scene(),
+    Ort_camera: null
   });
 
   const scene = immutable.current.scene;
@@ -113,6 +118,7 @@ export default withRouter(function Home(props) {
     container.current.appendChild(domElement); //把渲染器添加到dom中
 
     renderer.setSize(width, height); //设置渲染区域尺寸
+    renderer.domElement.style.display = "block";
     renderer.setPixelRatio(window.devicePixelRatio);
     container.current.appendChild(renderer.domElement);
     renderer.extensions.get("WEBGL_lose_context");
@@ -123,7 +129,7 @@ export default withRouter(function Home(props) {
     const params = {
       exploreName,
       OSName: OSInfo.name,
-      OSVersion: OSInfo.version
+      OSVersion: OSInfo.version,
     };
     getHomeShow(params).then((res) => {
       if (res.data.success) {
@@ -133,10 +139,13 @@ export default withRouter(function Home(props) {
     });
 
     window.addEventListener("resize", onWindowResize, false);
+    window.addEventListener("mousemove", onMouseMove, false);
+    window.addEventListener("touchstart", onTouchMove, false);
+    window.addEventListener("touchmove", onTouchMove, false);
 
     addOrbitCamera();
-    // addLights();
-    // addGround();
+    addLights();
+    addDrawing();
     // addAxes();
     createParticles();
 
@@ -469,6 +478,7 @@ export default withRouter(function Home(props) {
       // renderer.domElement
       css3dRenderer.domElement
     ));
+    ori.enableZoom = false;
     // ori.update();
   }
 
@@ -481,15 +491,102 @@ export default withRouter(function Home(props) {
     scene.add(d);
   }
 
-  function addGround() {
-    const geo = new THREE.PlaneBufferGeometry(400, 400);
-    // console.log(geo);
-    const mat = new THREE.MeshStandardMaterial({
-      color: 0x09d3ff,
+  function addDrawing() {
+    const vertexShader = `
+      uniform mat4 u_matrix;
+
+      varying vec2 v_uv;
+      varying vec3 v_world_position;
+      void main() {
+        v_uv = uv;
+        v_world_position = (u_matrix * modelMatrix * vec4(position, 1.0)).xyz;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+      }
+    `;
+    const fragmentShader = `
+
+      uniform vec3 u_position;
+      uniform float u_time;
+
+      uniform sampler2D u_texture;
+
+      varying vec2 v_uv;
+      varying vec3 v_world_position;
+
+      float circle(vec3 pixel, vec3 center, float radius) {
+        return 1.0 - smoothstep(radius - 20.0, radius + 20.0, length(pixel -  center));
+      }
+
+      void main() {
+        vec3 pixel_color = texture2D(u_texture, v_uv).rgb;
+
+        float circle_radius = 30.0;
+        vec3 circle_color = vec3(0.5, 0.5, 0.8) + vec3( 0.3 * cos(u_time), 0.3 * sin(1.3 * u_time), 0.2 * cos(2.7 * u_time));
+        float mix_factor = 0.8 * circle(v_world_position, u_position, circle_radius);
+        pixel_color = mix(pixel_color, circle_color, mix_factor);
+        gl_FragColor = vec4(vec3(pixel_color), 1.0);
+      }
+
+    `;
+
+    const current = immutable.current;
+
+    const options = {
+      minFilter: THREE.NearestFilter,
+      magFilter: THREE.NearestFilter,
+      format: THREE.RGBAFormat,
+      stencilBuffer: false,
+      type : /(iPad|iPhone|iPod)/g.test(navigator.userAgent) ? THREE.HalfFloatType : THREE.FloatType
+    };
+
+    current.renderTarget1 = new THREE.WebGLRenderTarget( current.renderer.domElement.clientWidth, current.renderer.domElement.clientHeight, options );
+    current.renderTarget2 = new THREE.WebGLRenderTarget( current.renderer.domElement.clientWidth, current.renderer.domElement.clientHeight, options );
+
+    current.Ort_camera = new THREE.OrthographicCamera(-1000, 1000, 1000, -1000, 0.0, 2000);
+
+    const geo = new THREE.PlaneBufferGeometry(2000, 2000);
+
+    const uniforms = {
+      u_time: { value: 0.0 },
+      u_resolution: { value: new THREE.Vector2() },
+      u_position: { value: new THREE.Vector3() },
+      u_texture: { value: null },
+      u_matrix: { value: immutable.current.camera.matrixWorld }
+    };
+
+    current.uniforms = uniforms;
+
+    console.log(current.uniforms);
+
+
+    const shaderMaterial = new THREE.ShaderMaterial({
+      uniforms: uniforms,
+      vertexShader: vertexShader,
+      fragmentShader: fragmentShader
     });
-    const m = new THREE.Mesh(geo, mat);
-    m.rotateX(-Math.PI / 2);
-    // scene.add(m);
+
+    const materialScreen = new THREE.MeshBasicMaterial({
+      // color: 0xff0
+    });
+
+    const meshShader = new THREE.Mesh(geo, shaderMaterial);
+    const meshScreen = new THREE.Mesh(geo, materialScreen);
+
+
+    meshShader.position.z = -1000;
+    current.meshShader = meshShader;
+    current.meshScreen = meshScreen;
+    meshScreen.position.z = -1000;
+    meshScreen.name = "drawing";
+
+    immutable.current.sceneShader.add(meshShader);
+    immutable.current.sceneScreen.add(meshScreen);
+
+    immutable.current.camera.add(meshScreen);
+
+    console.log(immutable.current.camera);
+
+    scene.add(immutable.current.camera);
   }
 
   function addAxes() {
@@ -505,8 +602,90 @@ export default withRouter(function Home(props) {
     );
   }
 
+  function onMouseMove(event) {
+    event.preventDefault();
+
+    const width = immutable.current.renderer.domElement.clientWidth;
+    const height = immutable.current.renderer.domElement.clientHeight;
+    const uniforms = immutable.current.uniforms;
+    const camera = immutable.current.camera;
+    const meshScreen = immutable.current.meshScreen;
+
+    const mouse = new THREE.Vector2();
+
+    mouse.x = ( event.clientX / width ) * 2 - 1;
+    mouse.y = - ( event.clientY / height ) * 2 + 1;
+
+    const raycaster = new THREE.Raycaster();
+
+    raycaster.setFromCamera( mouse, camera );
+
+    // See if the ray from the camera into the world hits one of our meshes
+    const intersects = raycaster.intersectObject( meshScreen, true );
+
+    if(intersects.length > 0) {
+
+      const position = intersects[0].point;
+      const x = position.x;
+      const y = position.y;
+      const z = position.z;
+
+      uniforms.u_position.value.set(x, y, z);
+
+
+      // console.log(x, y, z);
+
+      // const vec4 = new THREE.Vector4(x, y, z, 1).applyMatrix4(immutable.current.meshScreen.matrixWorld).applyMatrix4(immutable.current.camera.matrixWorld);
+
+      // console.log(vec4.x, vec4.y, vec4.z);
+      
+      // uniforms.u_position.value.set(vec4.x, vec4.y, vec4.z);
+
+    }
+  }
+
+  function onTouchMove(event) {
+
+  }
+
   function renderAnimation() {
+    const materialScreen = immutable.current.materialScreen;
+    const sceneShader = immutable.current.sceneShader;
+    const renderTarget1 = immutable.current.renderTarget1;
+    const renderTarget2 = immutable.current.renderTarget2;
+    const Ort_camera = immutable.current.Ort_camera;
+    const uniforms = immutable.current.uniforms;
+
+    const meshScreen = immutable.current.meshScreen;
+
+    if(meshScreen) {
+      if (!uniforms.u_texture.value) {
+        // materialScreen.visible = false;
+        renderer.setRenderTarget(renderTarget1);
+        renderer.render(sceneShader, Ort_camera);
+        // materialScreen.visible = true;
+      }
+  
+      uniforms.u_time.value = immutable.current.clock.getElapsedTime();
+      uniforms.u_texture.value = renderTarget1.texture;
+
+      renderer.setRenderTarget(renderTarget2);
+      renderer.render(sceneShader, Ort_camera);
+      
+      meshScreen.material.map = renderTarget2.texture;
+      meshScreen.material.needsUpdate = true;
+  
+      var tmp = renderTarget1;
+      immutable.current.renderTarget1 = renderTarget2;
+      immutable.current.renderTarget2 = tmp;
+    }
+
+    if(immutable.current.uniforms) {
+      immutable.current.uniforms.u_matrix.value = immutable.current.camera.matrixWorld;
+    }
+
     TWEEN.update();
+    renderer.setRenderTarget(null);
     renderer.render(scene, camera);
     css3dRenderer.render(scene, camera);
     particlesAnimation();
