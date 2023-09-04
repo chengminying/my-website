@@ -124,7 +124,9 @@ function getClientIp(req) {
   // console.log("ips = " + JSON.stringify(req.ips));// 相当于(req.header('x-forwarded-for') || '').split(',')
   // console.log("remoteAddress = " + req.connection.remoteAddress);// 未发生代理时，请求的ip
   // console.log("ip = " + req.ip);// 同req.connection.remoteAddress, 但是格式要好一些
-  return req.headers['x-forwarded-for'] ||
+  console.log(req.headers)
+  return req.headers['x-real-ip'] ||
+      req.headers['x-forwarded-for'] ||
       req.connection.remoteAddress ||
       req.socket.remoteAddress ||
       req.connection.socket.remoteAddress || '';
