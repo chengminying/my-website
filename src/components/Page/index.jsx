@@ -140,18 +140,18 @@ export default withRouter(
 
     onCollapse = () => {
       const { collapsed, openKey } = this.state;
-      // if (!collapsed) {
-      //   this.setState({
-      //     openKey: 0
-      //   });
-      //   this.flagKey = openKey;
-      // } else {
-      //   this.setOpenKey(this.flagKey);
-      //   this.flagKey = 0;
-      // }
-      // this.setState({
-      //   collapsed: !this.state.collapsed
-      // });
+      if (!collapsed) {
+        this.setState({
+          openKey: 0
+        });
+        this.flagKey = openKey;
+      } else {
+        // this.setOpenKey(this.flagKey);
+        this.flagKey = 0;
+      }
+      this.setState({
+        collapsed: !this.state.collapsed
+      });
     };
 
     handleBeforeChange = (editor, data, value) => {

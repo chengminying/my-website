@@ -556,8 +556,6 @@ export default withRouter(function Home(props) {
 
     current.uniforms = uniforms;
 
-    console.log(current.uniforms);
-
 
     const shaderMaterial = new THREE.ShaderMaterial({
       uniforms: uniforms,
@@ -692,9 +690,10 @@ export default withRouter(function Home(props) {
     immutable.current.animationFrame = requestAnimationFrame(renderAnimation);
   }
 
-  function handleDoubleClick(e) {
+  function handleDoubleClick(e, type) {
     let selectObjects = immutable.current.selectObjects;
-    selectObjects = intersect(e);
+    selectObjects = intersect(e, type);
+    console.log(selectObjects);
     if (selectObjects[0] && selectObjects[0].object.name === "跳转") {
       props.history.push({
         pathname: "/page",
@@ -703,7 +702,13 @@ export default withRouter(function Home(props) {
     }
   }
 
-  function intersect(e) {
+  function handleTouchStart(e) {
+    const dom = e.nativeEvent.target;
+    var event = new MouseEvent('click');
+    dom.dispatchEvent(event);
+  }
+
+  function intersect(e, type) {
     const width = container.current.clientWidth;
     const height = container.current.clientHeight;
     const camera = immutable.current.camera;
@@ -712,8 +717,14 @@ export default withRouter(function Home(props) {
     const rayCaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
 
-    mouse.x = (e.nativeEvent.offsetX / width) * 2 - 1;
-    mouse.y = -(e.nativeEvent.offsetY / height) * 2 + 1;
+    let offsetX, offsetY;
+
+    offsetX = e.nativeEvent.offsetX;
+    offsetY = e.nativeEvent.offsetY;
+    
+
+    mouse.x = (offsetX / width) * 2 - 1;
+    mouse.y = -(offsetY / height) * 2 + 1;
 
     if (!camera) return [];
     //通过鼠标点击的位置 和 当前相机矩阵 计算射线的位置
@@ -825,7 +836,7 @@ export default withRouter(function Home(props) {
       className="home-container"
       ref={(ref) => (container.current = ref)}
       onDoubleClick={handleDoubleClick}
-      onTouchStart={touchStart}
+      onTouchStart={handleTouchStart}
     >
       {pathname === queryParam ? (
         <Button
