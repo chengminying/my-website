@@ -14,7 +14,7 @@
     "deploy": {
         "production": {
             "user": "ubuntu",
-            "host": "119.45.23.113",
+            "host": "110.40.213.74",
             "ref": "origin/master",
             "repo": "https://github.com/chengminying/my-website.git",
             "path": "/home/ubuntu/my-website/production",
