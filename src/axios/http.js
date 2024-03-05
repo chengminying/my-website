@@ -4,7 +4,8 @@ axios.defaults.withCredentials = true; // 允许携带cookie
 
 axios.withCredentials = true;
 
-const online = "https://www.chengmy.com.cn/req/";
+// const online = "https://www.chengmy.com.cn/req/";
+const online = "http://110.40.213.74:80/req/";
 const local = "http://localhost:8088/req/";
 
 // const url = window.location.hostname === "localhost" ? local : online;
