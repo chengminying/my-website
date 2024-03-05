@@ -703,9 +703,9 @@ export default withRouter(function Home(props) {
   }
 
   function handleTouchStart(e) {
-    // const dom = e.nativeEvent.target;
-    // var event = new MouseEvent('click');
-    // dom.dispatchEvent(event);
+    const dom = e.nativeEvent.target;
+    var event = new MouseEvent('click');
+    dom.dispatchEvent(event);
   }
 
   function intersect(e, type) {
